@@ -27,11 +27,21 @@ Or browse the [source code of the sample application][3] for a complete example 
 
 ## Including in your project
 
-Last version is 0.0.2
+Last version is 0.0.4
 
-Just add the following statement in your build.gradle
+Just add the following in your build.gradle
 
-    compile 'com.github.flavienlaurent.datetimepicker:library:VERSION'
+```groovy
+repositories{
+    maven {
+        url "https://jitpack.io"
+    }
+}
+
+dependencies {
+    compile 'com.github.jaydeep17:datetimepicker:0.0.4'
+}
+```
 
 ## Usage
 
