@@ -48,8 +48,8 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
 
     public static final int ANIMATION_DELAY = 500;
     public static final String KEY_WEEK_START = "week_start";
-    public static final String KEY_YEAR_START = "year_start";
-    public static final String KEY_YEAR_END = "year_end";
+    public static final String KEY_MIN_DATE = "min_date";
+    public static final String KEY_MAX_DATE = "max_date";
     public static final String KEY_CURRENT_VIEW = "current_view";
     public static final String KEY_LIST_POSITION = "list_position";
     public static final String KEY_LIST_POSITION_OFFSET = "list_position_offset";
@@ -68,8 +68,6 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
     private int mCurrentView = UNINITIALIZED;
 
     private int mWeekStart = mCalendar.getFirstDayOfWeek();
-    private int mMaxYear = MAX_YEAR;
-    private int mMinYear = MIN_YEAR;
 
     private String mDayPickerDescription;
     private String mYearPickerDescription;
@@ -122,7 +120,7 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
         if (mDayPickerView != null) {
             mDayPickerView.setMinDate(minDate);
         }
-            this.minDate = minDate;
+        this.minDate = minDate;
     }
 
     /**
@@ -230,11 +228,17 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
     }
 
     public int getMaxYear() {
-        return mMaxYear;
+        if (maxDate == null) {
+            return MAX_YEAR;
+        }
+        return maxDate.year;
     }
 
     public int getMinYear() {
-        return mMinYear;
+        if (minDate == null) {
+            return MIN_YEAR;
+        }
+        return minDate.year;
     }
 
     public SimpleMonthAdapter.CalendarDay getSelectedDay() {
@@ -270,6 +274,10 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
 			mCalendar.set(Calendar.YEAR, bundle.getInt(KEY_SELECTED_YEAR));
 			mCalendar.set(Calendar.MONTH, bundle.getInt(KEY_SELECTED_MONTH));
 			mCalendar.set(Calendar.DAY_OF_MONTH, bundle.getInt(KEY_SELECTED_DAY));
+
+			minDate = bundle.getParcelable(KEY_MIN_DATE);
+			maxDate = bundle.getParcelable(KEY_MAX_DATE);
+
 			mVibrate = bundle.getBoolean(KEY_VIBRATE);
 		}
 	}
@@ -292,8 +300,6 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
         int listPositionOffset = 0;
         if (bundle != null) {
             mWeekStart = bundle.getInt(KEY_WEEK_START);
-            mMinYear = bundle.getInt(KEY_YEAR_START);
-            mMaxYear = bundle.getInt(KEY_YEAR_END);
             currentView = bundle.getInt(KEY_CURRENT_VIEW);
             listPosition = bundle.getInt(KEY_LIST_POSITION);
             listPositionOffset = bundle.getInt(KEY_LIST_POSITION_OFFSET);
@@ -385,8 +391,8 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
         bundle.putInt(KEY_SELECTED_MONTH, mCalendar.get(Calendar.MONTH));
         bundle.putInt(KEY_SELECTED_DAY, mCalendar.get(Calendar.DAY_OF_MONTH));
         bundle.putInt(KEY_WEEK_START, mWeekStart);
-        bundle.putInt(KEY_YEAR_START, mMinYear);
-        bundle.putInt(KEY_YEAR_END, mMaxYear);
+        bundle.putParcelable(KEY_MIN_DATE, minDate);
+        bundle.putParcelable(KEY_MAX_DATE, maxDate);
         bundle.putInt(KEY_CURRENT_VIEW, mCurrentView);
 
         int listPosition = -1;
@@ -428,6 +434,9 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
         mCallBack = onDateSetListener;
     }
 
+    /**
+     * @deprecated Use setMinDate and setMaxDate instead.
+     */
     public void setYearRange(int minYear, int maxYear) {
         if (maxYear < minYear)
             throw new IllegalArgumentException("Year end must be larger than year start");
@@ -435,8 +444,21 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
             throw new IllegalArgumentException("max year end must < " + MAX_YEAR);
         if (minYear < MIN_YEAR)
             throw new IllegalArgumentException("min year end must > " + MIN_YEAR);
-        mMinYear = minYear;
-        mMaxYear = maxYear;
+
+        if (minDate == null) {
+            // Set the max date to the start of January.
+            minDate = new SimpleMonthAdapter.CalendarDay(minYear, 1, 1);
+        } else {
+            minDate.year = minYear;
+        }
+
+        if (maxDate == null) {
+            // Set the max date to the end of december.
+            maxDate = new SimpleMonthAdapter.CalendarDay(minYear, 12, 31);
+        } else {
+            maxDate.year = maxYear;
+        }
+
         if (mDayPickerView != null)
             mDayPickerView.onChange();
     }

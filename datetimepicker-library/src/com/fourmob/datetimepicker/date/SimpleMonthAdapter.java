@@ -1,6 +1,8 @@
 package com.fourmob.datetimepicker.date;
 
 import android.content.Context;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -138,7 +140,7 @@ public class SimpleMonthAdapter extends BaseAdapter implements SimpleMonthView.O
         notifyDataSetChanged();
     }
 
-    public static class CalendarDay {
+    public static class CalendarDay implements Parcelable {
         private Calendar calendar;
 
         int day;
@@ -161,6 +163,34 @@ public class SimpleMonthAdapter extends BaseAdapter implements SimpleMonthView.O
             year = calendar.get(Calendar.YEAR);
             month = calendar.get(Calendar.MONTH);
             day = calendar.get(Calendar.DAY_OF_MONTH);
+        }
+
+        private CalendarDay(Parcel in) {
+            year = in.readInt();
+            month = in.readInt();
+            day = in.readInt();
+        }
+
+        public static final Creator CREATOR = new Creator() {
+            public CalendarDay createFromParcel(Parcel in) {
+                return new CalendarDay(in);
+            }
+
+            public CalendarDay[] newArray(int size) {
+                return new CalendarDay[size];
+            }
+        };
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeInt(year);
+            dest.writeInt(month);
+            dest.writeInt(day);
         }
 
         private void setTime(long timeInMillis) {
