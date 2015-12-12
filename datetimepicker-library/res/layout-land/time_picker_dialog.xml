@@ -31,7 +31,7 @@
         <FrameLayout
             android:layout_width="@dimen/left_side_width"
             android:layout_height="match_parent"
-            android:background="@color/datepicker_primary" >
+            android:background="?colorPrimary" >
             <include
                 layout="@layout/time_header_label"
                 android:layout_width="match_parent"

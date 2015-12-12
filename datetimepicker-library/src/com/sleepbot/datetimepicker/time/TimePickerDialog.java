@@ -16,6 +16,7 @@ package com.sleepbot.datetimepicker.time;
  */
 
 import android.app.ActionBar.LayoutParams;
+import android.content.res.ColorStateList;
 import android.graphics.Rect;
 import android.os.Build;
 import android.support.v4.app.DialogFragment;
@@ -264,13 +265,19 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
             }
         });
         mDoneButton.setOnKeyListener(keyboardListener);
-        
-        view.findViewById(R.id.cancel_button).setOnClickListener(new OnClickListener() {
+
+        TextView cancelButton = (TextView) view.findViewById(R.id.cancel_button);
+        cancelButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 dismiss();
             }
         });
+
+        // Assign the programmatic state list drawable to allow attributes.
+        ColorStateList selector = Utils.createThemedTextColorStateList(view.getContext());
+        mDoneButton.setTextColor(selector);
+        cancelButton.setTextColor(selector);
 
         // Enable or disable the AM/PM view.
         mAmPmHitspace = view.findViewById(R.id.ampm_hitspace);

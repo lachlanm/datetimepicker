@@ -6,11 +6,10 @@
     android:layout_height="wrap_content"
     android:background="@color/circle_background"
     android:padding="@dimen/view_margin_medium"
-    style="?android:attr/buttonBarStyle">
+    style="?attr/buttonBarStyle">
 
     <Button
         android:textSize="@dimen/done_label_size"
-        android:textColor="@color/done_text_color"
         android:id="@id/cancel_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -22,7 +21,6 @@
 
     <Button
         android:textSize="@dimen/done_label_size"
-        android:textColor="@color/done_text_color"
         android:id="@id/done_button"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"

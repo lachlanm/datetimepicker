@@ -1,7 +1,12 @@
 package com.fourmob.datetimepicker;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.res.ColorStateList;
+import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.os.Build;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.accessibility.AccessibilityManager;
 
@@ -73,5 +78,41 @@ public class Utils {
         } else {
             return false;
         }
+    }
+
+    public static int getColorAttribute(Context context, int attribute) {
+        TypedValue typedValue = new TypedValue();
+
+        TypedArray a = null;
+        try {
+            a = context.obtainStyledAttributes(typedValue.data, new int[]{attribute});
+            return a.getColor(0, Color.BLACK);
+        } finally {
+            if (a != null) {
+                a.recycle();
+            }
+        }
+    }
+
+    public static int getPrimaryColor(Context context) {
+        return getColorAttribute(context, R.attr.colorPrimary);
+    }
+
+    public static int getPrimaryDarkColor(Context context) {
+        return getColorAttribute(context, R.attr.colorPrimaryDark);
+    }
+
+    public static ColorStateList createThemedTextColorStateList(Context context) {
+        int[][] states = new int[][]{
+                new int[]{android.R.attr.state_enabled}, // enabled
+                new int[]{-android.R.attr.state_enabled}, // disabled
+        };
+
+        int[] colors = new int[]{
+                Utils.getPrimaryColor(context),
+                context.getResources().getColor(R.color.done_text_color_disabled)
+        };
+
+        return new ColorStateList(states, colors);
     }
 }

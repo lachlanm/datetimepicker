@@ -8,6 +8,7 @@ import android.util.AttributeSet;
 import android.widget.TextView;
 
 import com.fourmob.datetimepicker.R;
+import com.fourmob.datetimepicker.Utils;
 
 public class TextViewWithCircularIndicator extends TextView {
     
@@ -21,7 +22,7 @@ public class TextViewWithCircularIndicator extends TextView {
 		super(context, attributeSet);
         
 		Resources res = context.getResources();
-		mCircleColor = res.getColor(R.color.datepicker_primary);
+		mCircleColor = Utils.getPrimaryColor(context);
 		mRadius = res.getDimensionPixelOffset(R.dimen.month_select_circle_radius);
 		mItemIsSelectedText = context.getResources().getString(R.string.item_is_selected);
         

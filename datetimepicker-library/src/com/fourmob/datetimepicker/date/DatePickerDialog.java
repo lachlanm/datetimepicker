@@ -2,6 +2,7 @@ package com.fourmob.datetimepicker.date;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -336,6 +337,11 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
                 dismiss();
             }
         });
+
+        // Assign the programmatic state list drawable to allow attributes.
+        ColorStateList selector = Utils.createThemedTextColorStateList(activity);
+        doneButton.setTextColor(selector);
+        cancelButton.setTextColor(selector);
 
         updateDisplay(false);
         setCurrentView(currentView, true);

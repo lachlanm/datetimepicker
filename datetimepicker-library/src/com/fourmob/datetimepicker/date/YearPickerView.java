@@ -1,6 +1,7 @@
 package com.fourmob.datetimepicker.date;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.graphics.drawable.StateListDrawable;
 import android.view.View;
@@ -11,6 +12,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.fourmob.datetimepicker.R;
+import com.fourmob.datetimepicker.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -102,15 +104,19 @@ public class YearPickerView extends ListView implements AdapterView.OnItemClickL
 	}
 
 	private class YearAdapter extends ArrayAdapter<String> {
+		ColorStateList textColorStateList;
 
         public YearAdapter(Context context, int resource, List<String> years) {
             super(context, resource, years);
-        }
+			textColorStateList = createTextColorStateList(context);
+		}
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             TextViewWithCircularIndicator v = (TextViewWithCircularIndicator) super.getView(position, convertView, parent);
+			v.setTextColor(textColorStateList);
             v.requestLayout();
+
             int year = getYearFromTextView(v);
             boolean selected = mController.getSelectedDay().year == year;
             v.drawIndicator(selected);
@@ -119,5 +125,19 @@ public class YearPickerView extends ListView implements AdapterView.OnItemClickL
             }
             return v;
         }
+
+		private ColorStateList createTextColorStateList(Context context) {
+			int[][] states = new int[][]{
+					new int[]{-android.R.attr.state_selected, -android.R.attr.state_pressed}, // not selected, and not pressed
+					new int[]{android.R.attr.state_pressed}, // pressed
+			};
+
+			int[] colors = new int[]{
+					context.getResources().getColor(R.color.date_picker_text_normal),
+					Utils.getPrimaryDarkColor(context)
+			};
+
+			return new ColorStateList(states, colors);
+		}
 	}
 }

@@ -107,7 +107,7 @@ public class SimpleMonthView extends View {
 		mMonthTitleTypeface = resources.getString(R.string.sans_serif);
 		mDayTextColor = resources.getColor(R.color.date_picker_text_normal);
         mDayDisabledTextColor = resources.getColor(R.color.done_text_color_disabled);
-		mTodayNumberColor = resources.getColor(R.color.datepicker_primary);
+		mTodayNumberColor = Utils.getPrimaryColor(context);
 		mMonthTitleColor = resources.getColor(R.color.white);
 		mMonthTitleBGColor = resources.getColor(R.color.circle_background);
 
