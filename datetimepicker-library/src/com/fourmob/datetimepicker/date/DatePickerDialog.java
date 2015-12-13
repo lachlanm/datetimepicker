@@ -16,14 +16,12 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.fourmob.datetimepicker.R;
 import com.fourmob.datetimepicker.Utils;
 import com.nineoldandroids.animation.ObjectAnimator;
 
-import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -54,9 +52,8 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
     public static final String KEY_LIST_POSITION = "list_position";
     public static final String KEY_LIST_POSITION_OFFSET = "list_position_offset";
 
-    private static SimpleDateFormat DAY_FORMAT = new SimpleDateFormat("dd", Locale.getDefault());
+    private static SimpleDateFormat DAY_MONTH_FORMAT = new SimpleDateFormat("EEE, dd MMM", Locale.getDefault());
     private static SimpleDateFormat YEAR_FORMAT = new SimpleDateFormat("yyyy", Locale.getDefault());
-    private DateFormatSymbols mDateFormatSymbols = new DateFormatSymbols();
 
     private final Calendar mCalendar = Calendar.getInstance();
     private HashSet<OnDateChangedListener> mListeners = new HashSet<OnDateChangedListener>();
@@ -74,12 +71,8 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
     private String mSelectDay;
     private String mSelectYear;
 
-    private TextView mDayOfWeekView;
     private DayPickerView mDayPickerView;
-    private Button mDoneButton;
-    private LinearLayout mMonthAndDayView;
-    private TextView mSelectedDayTextView;
-    private TextView mSelectedMonthTextView;
+    private TextView mMonthAndDayView;
     private Vibrator mVibrator;
     private YearPickerView mYearPickerView;
     private TextView mYearView;
@@ -165,7 +158,7 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
                 Utils.tryAccessibilityAnnounce(mAnimator, mSelectDay);
                 break;
             case YEAR_VIEW:
-                ObjectAnimator yearAnim = Utils.getPulseAnimator(mYearView, 0.85F, 1.1F);
+                ObjectAnimator yearAnim = Utils.getPulseAnimator(mYearView, 0.9F, 1.05F);
                 if (mDelayAnimation) {
                     yearAnim.setStartDelay(ANIMATION_DELAY);
                     mDelayAnimation = false;
@@ -194,13 +187,10 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
         mSelectedMonthTextView.setText(mCalendar.getDisplayName(Calendar.MONTH, Calendar.SHORT,
                 Locale.getDefault()).toUpperCase(Locale.getDefault()));*/
 
-        if (this.mDayOfWeekView != null) {
-            this.mCalendar.setFirstDayOfWeek(mWeekStart);
-            this.mDayOfWeekView.setText(mDateFormatSymbols.getWeekdays()[this.mCalendar.get(Calendar.DAY_OF_WEEK)].toUpperCase(Locale.getDefault()));
-        }
-            this.mSelectedMonthTextView.setText(mDateFormatSymbols.getMonths()[this.mCalendar.get(Calendar.MONTH)].toUpperCase(Locale.getDefault()));
-            mSelectedDayTextView.setText(DAY_FORMAT.format(mCalendar.getTime()));
-            mYearView.setText(YEAR_FORMAT.format(mCalendar.getTime()));
+        this.mCalendar.setFirstDayOfWeek(mWeekStart);
+
+        mMonthAndDayView.setText(DAY_MONTH_FORMAT.format(mCalendar.getTime()));
+        mYearView.setText(YEAR_FORMAT.format(mCalendar.getTime()));
 
         // Accessibility.
         long millis = mCalendar.getTimeInMillis();
@@ -307,11 +297,9 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
         this.viewInitialized = true;
         View view = layoutInflater.inflate(R.layout.date_picker_dialog, null);
 
-        mDayOfWeekView = ((TextView) view.findViewById(R.id.date_picker_header));
-        mMonthAndDayView = ((LinearLayout) view.findViewById(R.id.date_picker_month_and_day));
+        mMonthAndDayView = (TextView) view.findViewById(R.id.date_picker_month_and_day);
         mMonthAndDayView.setOnClickListener(this);
-        mSelectedMonthTextView = ((TextView) view.findViewById(R.id.date_picker_month));
-        mSelectedDayTextView = ((TextView) view.findViewById(R.id.date_picker_day));
+
         mYearView = ((TextView) view.findViewById(R.id.date_picker_year));
         mYearView.setOnClickListener(this);
 

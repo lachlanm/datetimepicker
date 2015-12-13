@@ -13,16 +13,7 @@
         android:background="@color/white"
         android:orientation="horizontal">
 
-        <LinearLayout
-            android:layout_width="0.0dip"
-            android:layout_height="match_parent"
-            android:layout_weight="1.0"
-            android:orientation="vertical">
-
-            <include layout="@layout/date_picker_header_view" />
-
-            <include layout="@layout/date_picker_selected_date" />
-        </LinearLayout>
+        <include layout="@layout/date_picker_selected_date" />
 
         <include layout="@layout/date_picker_view_animator" />
     </LinearLayout>

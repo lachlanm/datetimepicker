@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="@dimen/date_picker_component_width"
-    android:layout_height="wrap_content"
+    android:layout_height="@dimen/done_button_panel_height"
     android:background="@color/circle_background"
     android:padding="@dimen/view_margin_medium"
     style="?attr/buttonBarStyle">
@@ -17,7 +17,8 @@
         android:text="@android:string/cancel"
         android:layout_toStartOf="@id/done_button"
         android:layout_toLeftOf="@id/done_button"
-        style="@style/button_bar_button" />
+        style="@style/button_bar_button"
+        tools:textColor="@android:color/black"/>
 
     <Button
         android:textSize="@dimen/done_label_size"
@@ -28,5 +29,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/done_label"
-        style="@style/button_bar_button" />
+        style="@style/button_bar_button"
+        tools:textColor="@android:color/black" />
 </RelativeLayout>
