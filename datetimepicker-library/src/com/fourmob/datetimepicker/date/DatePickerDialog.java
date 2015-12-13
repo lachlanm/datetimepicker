@@ -79,9 +79,9 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
 
     private boolean mVibrate = true;
     private boolean mCloseOnSingleTapDay;
-    private SimpleMonthAdapter.CalendarDay minDate;
+    private CalendarDay minDate;
     private boolean viewInitialized = false;
-    private SimpleMonthAdapter.CalendarDay maxDate;
+    private CalendarDay maxDate;
 
     private void adjustDayInMonthIfNeeded(int month, int year) {
         int day = mCalendar.get(Calendar.DAY_OF_MONTH);
@@ -109,7 +109,7 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
      * Set the minimum allowed date
      * Note : the month index starts from 0, rest all from 1
      */
-    public void setMinDate(SimpleMonthAdapter.CalendarDay minDate) {
+    public void setMinDate(CalendarDay minDate) {
         if (mDayPickerView != null) {
             mDayPickerView.setMinDate(minDate);
         }
@@ -120,7 +120,7 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
      * Set the maximum allowed date
      * Note : the month index starts from 0, rest all from 1
      */
-    public void setMaxDate(SimpleMonthAdapter.CalendarDay maxDate) {
+    public void setMaxDate(CalendarDay maxDate) {
         if (mDayPickerView != null) {
             mDayPickerView.setMaxDate(maxDate);
         }
@@ -251,8 +251,8 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
         return (getMaxYear() - getMinYear()) * SimpleMonthAdapter.MONTHS_IN_YEAR + getLastMonth() - getFirstMonth() + 1;
     }
 
-    public SimpleMonthAdapter.CalendarDay getSelectedDay() {
-        return new SimpleMonthAdapter.CalendarDay(mCalendar);
+    public CalendarDay getSelectedDay() {
+        return new CalendarDay(mCalendar);
     }
 
     public void initialize(OnDateSetListener onDateSetListener, int year, int month, int day, boolean vibrate) {
@@ -455,14 +455,14 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
 
         if (minDate == null) {
             // Set the max date to the start of January.
-            minDate = new SimpleMonthAdapter.CalendarDay(minYear, 1, 1);
+            minDate = new CalendarDay(minYear, 1, 1);
         } else {
             minDate.year = minYear;
         }
 
         if (maxDate == null) {
             // Set the max date to the end of december.
-            maxDate = new SimpleMonthAdapter.CalendarDay(minYear, 12, 31);
+            maxDate = new CalendarDay(minYear, 12, 31);
         } else {
             maxDate.year = maxYear;
         }

@@ -29,8 +29,8 @@ public class DayPickerView extends ListView implements AbsListView.OnScrollListe
 	protected int mPreviousScrollState = 0;
 
 	protected ScrollStateRunnable mScrollStateChangedRunnable = new ScrollStateRunnable();
-	protected SimpleMonthAdapter.CalendarDay mSelectedDay = new SimpleMonthAdapter.CalendarDay();
-	protected SimpleMonthAdapter.CalendarDay mTempDay = new SimpleMonthAdapter.CalendarDay();
+	protected CalendarDay mSelectedDay = new CalendarDay();
+	protected CalendarDay mTempDay = new CalendarDay();
 
     protected int mNumWeeks = 6;
     protected boolean mShowWeekNumber = false;
@@ -72,7 +72,7 @@ public class DayPickerView extends ListView implements AbsListView.OnScrollListe
         return firstPosition + mostVisibleIndex;
 	}
 
-	public boolean goTo(SimpleMonthAdapter.CalendarDay day, boolean animate, boolean setSelected, boolean forceScroll) {
+	public boolean goTo(CalendarDay day, boolean animate, boolean setSelected, boolean forceScroll) {
         // Set the selected day
         if (setSelected) {
             mSelectedDay.set(day);
@@ -172,20 +172,20 @@ public class DayPickerView extends ListView implements AbsListView.OnScrollListe
 		onScrollStateChanged(this, 0);
 	}
 
-	protected void setMonthDisplayed(SimpleMonthAdapter.CalendarDay calendarDay) {
+	protected void setMonthDisplayed(CalendarDay calendarDay) {
 		this.mCurrentMonthDisplayed = calendarDay.month;
 		invalidateViews();
 	}
 
-    public void setMinDate(SimpleMonthAdapter.CalendarDay day){
+    public void setMinDate(CalendarDay day){
         mAdapter.setMinDate(day);
     }
 
-    public void setMaxDate(SimpleMonthAdapter.CalendarDay day) {
+    public void setMaxDate(CalendarDay day) {
         mAdapter.setMaxDate(day);
     }
 
-	protected void setUpAdapter(SimpleMonthAdapter.CalendarDay mMaxDate) {
+	protected void setUpAdapter(CalendarDay mMaxDate) {
 		if (mAdapter == null) {
 			mAdapter = new SimpleMonthAdapter(getContext(), mController);
         }

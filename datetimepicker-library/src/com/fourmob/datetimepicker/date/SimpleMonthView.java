@@ -94,8 +94,8 @@ public class SimpleMonthView extends View {
 	private DateFormatSymbols mDateFormatSymbols = new DateFormatSymbols();
 
     private OnDayClickListener mOnDayClickListener;
-    private SimpleMonthAdapter.CalendarDay mMinDate;
-    private SimpleMonthAdapter.CalendarDay mMaxDate;
+    private CalendarDay mMinDate;
+    private CalendarDay mMaxDate;
 
     public SimpleMonthView(Context context) {
 		super(context);
@@ -163,7 +163,7 @@ public class SimpleMonthView extends View {
         return DateUtils.formatDateRange(getContext(), millis, millis, flags);
     }
 
-	private void onDayClick(SimpleMonthAdapter.CalendarDay calendarDay) {
+	private void onDayClick(CalendarDay calendarDay) {
 		if (mOnDayClickListener != null) {
 			mOnDayClickListener.onDayClick(this, calendarDay);
         }
@@ -195,9 +195,9 @@ public class SimpleMonthView extends View {
             } else {
                 mMonthNumPaint.setColor(mDayTextColor);
                 if(hasDisabledDays){
-                    if(mMinDate != null && mMinDate.isAfter(new SimpleMonthAdapter.CalendarDay(mYear,mMonth,day))) {
+                    if(mMinDate != null && mMinDate.isAfter(new CalendarDay(mYear,mMonth,day))) {
                         mMonthNumPaint.setColor(mDayDisabledTextColor);
-                    } else if (mMaxDate != null && mMaxDate.isBefore(new SimpleMonthAdapter.CalendarDay(mYear,mMonth,day))) {
+                    } else if (mMaxDate != null && mMaxDate.isBefore(new CalendarDay(mYear,mMonth,day))) {
                         mMonthNumPaint.setColor(mDayDisabledTextColor);
                     }
                 }
@@ -214,7 +214,7 @@ public class SimpleMonthView extends View {
 		}
 	}
 
-	public SimpleMonthAdapter.CalendarDay getDayFromLocation(float x, float y) {
+	public CalendarDay getDayFromLocation(float x, float y) {
 		int padding = mPadding;
 		if ((x < padding) || (x > mWidth - mPadding)) {
 			return null;
@@ -223,7 +223,7 @@ public class SimpleMonthView extends View {
 		int yDay = (int) (y - MONTH_HEADER_SIZE) / mRowHeight;
 		int day = 1 + ((int) ((x - padding) * mNumDays / (mWidth - padding - mPadding)) - findDayOffset()) + yDay * mNumDays;
 
-		return new SimpleMonthAdapter.CalendarDay(mYear, mMonth, day);
+		return new CalendarDay(mYear, mMonth, day);
 	}
 
 	protected void initView() {
@@ -284,7 +284,7 @@ public class SimpleMonthView extends View {
 
 	public boolean onTouchEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_UP) {
-            SimpleMonthAdapter.CalendarDay calendarDay = getDayFromLocation(event.getX(), event.getY());
+            CalendarDay calendarDay = getDayFromLocation(event.getX(), event.getY());
             if (calendarDay != null) {
                 onDayClick(calendarDay);
             }
@@ -304,11 +304,11 @@ public class SimpleMonthView extends View {
 		setTag(params);
 
         if (params.containsKey(VIEW_PARAMS_MIN_DATE_DAY) && params.containsKey(VIEW_PARAMS_MIN_DATE_MONTH) && params.containsKey(VIEW_PARAMS_MIN_DATE_YEAR)) {
-            this.mMinDate = new SimpleMonthAdapter.CalendarDay(params.get(VIEW_PARAMS_MIN_DATE_YEAR), params.get(VIEW_PARAMS_MIN_DATE_MONTH), params.get(VIEW_PARAMS_MIN_DATE_DAY));
+            this.mMinDate = new CalendarDay(params.get(VIEW_PARAMS_MIN_DATE_YEAR), params.get(VIEW_PARAMS_MIN_DATE_MONTH), params.get(VIEW_PARAMS_MIN_DATE_DAY));
         }
 
         if (params.containsKey(VIEW_PARAMS_MAX_DATE_DAY) && params.containsKey(VIEW_PARAMS_MAX_DATE_MONTH) && params.containsKey(VIEW_PARAMS_MAX_DATE_YEAR)) {
-            this.mMaxDate = new SimpleMonthAdapter.CalendarDay(params.get(VIEW_PARAMS_MAX_DATE_YEAR), params.get(VIEW_PARAMS_MAX_DATE_MONTH), params.get(VIEW_PARAMS_MAX_DATE_DAY));
+            this.mMaxDate = new CalendarDay(params.get(VIEW_PARAMS_MAX_DATE_YEAR), params.get(VIEW_PARAMS_MAX_DATE_MONTH), params.get(VIEW_PARAMS_MAX_DATE_DAY));
         }
 
         if (params.containsKey(VIEW_PARAMS_HEIGHT)) {
@@ -357,6 +357,6 @@ public class SimpleMonthView extends View {
 	}
 
 	public static abstract interface OnDayClickListener {
-		public abstract void onDayClick(SimpleMonthView simpleMonthView, SimpleMonthAdapter.CalendarDay calendarDay);
+		public abstract void onDayClick(SimpleMonthView simpleMonthView, CalendarDay calendarDay);
 	}
 }
