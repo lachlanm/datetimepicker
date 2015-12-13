@@ -7,6 +7,12 @@ abstract interface DatePickerController {
 
 	public abstract int getMinYear();
 
+	public abstract int getFirstMonth();
+
+	public abstract int getLastMonth();
+
+	public abstract int getMonthCount();
+
 	public abstract SimpleMonthAdapter.CalendarDay getSelectedDay();
 
 	public abstract void onDayOfMonthSelected(int year, int month, int day);

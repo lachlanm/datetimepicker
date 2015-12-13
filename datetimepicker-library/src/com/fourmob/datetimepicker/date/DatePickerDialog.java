@@ -241,6 +241,26 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
         return minDate.year;
     }
 
+    @Override
+    public int getFirstMonth() {
+        if (minDate == null) {
+            return Calendar.JANUARY;
+        }
+        return minDate.month;
+    }
+
+    @Override
+    public int getLastMonth() {
+        if (maxDate == null) {
+            return Calendar.DECEMBER;
+        }
+        return maxDate.month;
+    }
+
+    public int getMonthCount() {
+        return (getMaxYear() - getMinYear()) * SimpleMonthAdapter.MONTHS_IN_YEAR + getLastMonth() - getFirstMonth() + 1;
+    }
+
     public SimpleMonthAdapter.CalendarDay getSelectedDay() {
         return new SimpleMonthAdapter.CalendarDay(mCalendar);
     }

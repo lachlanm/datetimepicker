@@ -41,7 +41,7 @@ public class SimpleMonthAdapter extends BaseAdapter implements SimpleMonthView.O
     }
 
     public int getCount() {
-        return ((mController.getMaxYear() - mController.getMinYear()) + 1) * MONTHS_IN_YEAR;
+        return mController.getMonthCount();
     }
 
     public Object getItem(int position) {
@@ -69,8 +69,8 @@ public class SimpleMonthAdapter extends BaseAdapter implements SimpleMonthView.O
         }
         drawingParams.clear();
 
-        final int month = position % MONTHS_IN_YEAR;
-        final int year = position / MONTHS_IN_YEAR + mController.getMinYear();
+        final int month = (position + mController.getFirstMonth()) % MONTHS_IN_YEAR;
+        final int year = (position + mController.getFirstMonth()) / MONTHS_IN_YEAR + mController.getMinYear();
 
         int selectedDay = -1;
         if (isSelectedDayInMonth(year, month)) {
