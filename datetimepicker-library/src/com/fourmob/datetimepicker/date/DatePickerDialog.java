@@ -80,6 +80,7 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
     private TextView mYearView;
 
     private boolean mVibrate = true;
+    private boolean mUsePulseAnimations = true;
     private boolean mCloseOnSingleTapDay;
     private CalendarDay minDate;
     private boolean viewInitialized = false;
@@ -129,9 +130,12 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
         this.maxDate = maxDate;
     }
 
-
     public void setVibrate(boolean vibrate) {
         mVibrate = vibrate;
+    }
+
+    public void setPulseAnimationsEnabled(boolean usePulseAnimations) {
+        mUsePulseAnimations = usePulseAnimations;
     }
 
     private void setCurrentView(int currentView) {
@@ -140,44 +144,60 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
 
     private void setCurrentView(int currentView, boolean forceRefresh) {
         long timeInMillis = mCalendar.getTimeInMillis();
+
+        TextView selectedLabel = null;
+        boolean monthAndDayViewSelected = false;
+        boolean yearViewSelected = false;
+        String contentDescription = null;
+        String announcement = null;
+
         switch (currentView) {
             case MONTH_AND_DAY_VIEW:
-                ObjectAnimator monthDayAnim = Utils.getPulseAnimator(mMonthAndDayView, 0.9F, 1.05F);
-                if (mDelayAnimation) {
-                    monthDayAnim.setStartDelay(ANIMATION_DELAY);
-                    mDelayAnimation = false;
-                }
+                selectedLabel = mMonthAndDayView;
+
                 mDayPickerView.onDateChanged();
-                if (mCurrentView != currentView || forceRefresh) {
-                    mMonthAndDayView.setSelected(true);
-                    mYearView.setSelected(false);
-                    mAnimator.setDisplayedChild(MONTH_AND_DAY_VIEW);
-                    mCurrentView = currentView;
-                }
-                monthDayAnim.start();
+                monthAndDayViewSelected = true;
+
                 String monthDayDesc = DateUtils.formatDateTime(getActivity(), timeInMillis, DateUtils.FORMAT_SHOW_DATE);
-                mAnimator.setContentDescription(mDayPickerDescription + ": " + monthDayDesc);
-                Utils.tryAccessibilityAnnounce(mAnimator, mSelectDay);
+                contentDescription = mDayPickerDescription + ": " + monthDayDesc;
+                announcement = mSelectDay;
                 break;
+
             case YEAR_VIEW:
-                ObjectAnimator yearAnim = Utils.getPulseAnimator(mYearView, 0.9F, 1.05F);
-                if (mDelayAnimation) {
-                    yearAnim.setStartDelay(ANIMATION_DELAY);
-                    mDelayAnimation = false;
-                }
+                selectedLabel = mYearView;
+
                 mYearPickerView.onDateChanged();
-                if (mCurrentView != currentView || forceRefresh) {
-                    mMonthAndDayView.setSelected(false);
-                    mYearView.setSelected(true);
-                    mAnimator.setDisplayedChild(YEAR_VIEW);
-                    mCurrentView = currentView;
-                }
-                yearAnim.start();
-                String dayDesc = YEAR_FORMAT.format(timeInMillis);
-                mAnimator.setContentDescription(mYearPickerDescription + ": " + dayDesc);
-                Utils.tryAccessibilityAnnounce(mAnimator, mSelectYear);
+                yearViewSelected = true;
+
+                contentDescription = mYearPickerDescription + ": " + YEAR_FORMAT.format(timeInMillis);
+                announcement = mSelectYear;
                 break;
         }
+
+        if (selectedLabel == null) {
+            return;
+        }
+
+        // Update the view switcher and set the appropriate selection state.
+        if (mCurrentView != currentView || forceRefresh) {
+            mMonthAndDayView.setSelected(monthAndDayViewSelected);
+            mYearView.setSelected(yearViewSelected);
+            mAnimator.setDisplayedChild(currentView);
+            mCurrentView = currentView;
+        }
+
+        // Shows a pulse animation when the view is clicked, or the dialog opens.
+        if (mUsePulseAnimations) {
+            ObjectAnimator pulseAnimator = Utils.getPulseAnimator(selectedLabel, 0.9F, 1.05F);
+            if (mDelayAnimation) {
+                pulseAnimator.setStartDelay(ANIMATION_DELAY);
+                mDelayAnimation = false;
+            }
+            pulseAnimator.start();
+        }
+
+        mAnimator.setContentDescription(contentDescription);
+        Utils.tryAccessibilityAnnounce(mAnimator, announcement);
     }
 
     private void updateDisplay(boolean announce) {

@@ -107,6 +107,10 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
 
     // Enable/Disable Vibrations
     private boolean mVibrate = true;
+
+    // Enable/Disable pulse animations.
+    private boolean mUsePulseAnimations = true;
+
     private boolean mCloseOnSingleTapMinute;
 
     /**
@@ -429,6 +433,10 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
         mMinuteSpaceView.setText(text);
     }
 
+    public void setPulseAnimationsEnabled(boolean usePulseAnimations) {
+        mUsePulseAnimations = usePulseAnimations;
+    }
+
     // Show either Hours or Minutes.
     private void setCurrentItemShowing(int index, boolean animateCircle, boolean delayLabelAnimate,
                                        boolean announce) {
@@ -459,11 +467,13 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
         mHourView.setTextColor(hourColor);
         mMinuteView.setTextColor(minuteColor);
 
-        com.nineoldandroids.animation.ObjectAnimator pulseAnimator = Utils.getPulseAnimator(labelToAnimate, 0.85f, 1.1f);
-        if (delayLabelAnimate) {
-            pulseAnimator.setStartDelay(PULSE_ANIMATOR_DELAY);
+        if (mUsePulseAnimations) {
+            com.nineoldandroids.animation.ObjectAnimator pulseAnimator = Utils.getPulseAnimator(labelToAnimate, 0.85f, 1.1f);
+            if (delayLabelAnimate) {
+                pulseAnimator.setStartDelay(PULSE_ANIMATOR_DELAY);
+            }
+            pulseAnimator.start();
         }
-        pulseAnimator.start();
     }
 
     /**
