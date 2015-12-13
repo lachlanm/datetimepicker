@@ -15,8 +15,11 @@
     <dimen name="selected_date_day_month_size">30dip</dimen>
     <dimen name="month_label_size">16sp</dimen>
     <dimen name="day_number_size">12sp</dimen>
-    <dimen name="year_label_height">64dip</dimen>
-    <dimen name="year_label_text_size">22dip</dimen>
+
+    <dimen name="year_label_margin_top_bottom">12dip</dimen>
+    <dimen name="year_label_text_size">20dip</dimen>
+    <dimen name="year_label_selected_text_size">30dip</dimen>
+
     <dimen name="month_view_bottom_pad">6dp</dimen>
 
     <dimen name="time_label_size">60sp</dimen>

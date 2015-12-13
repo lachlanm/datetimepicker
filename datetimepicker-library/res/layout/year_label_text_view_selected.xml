@@ -8,5 +8,6 @@
     android:gravity="center"
     android:paddingBottom="@dimen/year_label_margin_top_bottom"
     android:paddingTop="@dimen/year_label_margin_top_bottom"
-    android:textSize="@dimen/year_label_text_size"
+    android:textColor="?colorPrimary"
+    android:textSize="@dimen/year_label_selected_text_size"
     tools:text="2015" />
