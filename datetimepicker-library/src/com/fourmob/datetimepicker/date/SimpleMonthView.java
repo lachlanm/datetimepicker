@@ -1,17 +1,18 @@
 package com.fourmob.datetimepicker.date;
 
-import android.graphics.Paint.Align;
-import android.graphics.Paint.Style;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Paint.Align;
+import android.graphics.Paint.Style;
 import android.graphics.Typeface;
 import android.support.annotation.Nullable;
 import android.text.format.DateUtils;
 import android.text.format.Time;
 import android.view.MotionEvent;
 import android.view.View;
+
 import com.fourmob.datetimepicker.R;
 import com.fourmob.datetimepicker.Utils;
 
@@ -23,7 +24,7 @@ import java.util.Locale;
 
 public class SimpleMonthView extends View {
 
-    public static final String VIEW_PARAMS_HEIGHT = "height";
+    private static final String VIEW_PARAMS_HEIGHT = "height";
     public static final String VIEW_PARAMS_MONTH = "month";
     public static final String VIEW_PARAMS_YEAR = "year";
     public static final String VIEW_PARAMS_SELECTED_DAY = "selected_day";
@@ -32,53 +33,52 @@ public class SimpleMonthView extends View {
     public static final String VIEW_PARAMS_MAX_DATE_DAY = "maxDateDay";
 
     public static final String VIEW_PARAMS_MIN_DATE_MONTH = "minDateMonth";
-    public static final String VIEW_PARAMS_MIN_DATE_YEAR ="minDateYear" ;
+    public static final String VIEW_PARAMS_MIN_DATE_YEAR ="minDateYear";
     public static final String VIEW_PARAMS_MAX_DATE_MONTH = "maxDateMonth";
-    public static final String VIEW_PARAMS_MAX_DATE_YEAR ="maxDateYear" ;
-    protected static int DEFAULT_HEIGHT = 32;
+    public static final String VIEW_PARAMS_MAX_DATE_YEAR ="maxDateYear";
+
+    protected static final int DEFAULT_HEIGHT = 32;
     protected static final int DEFAULT_NUM_ROWS = 6;
-	protected static int DAY_SELECTED_CIRCLE_SIZE;
-	protected static int DAY_SEPARATOR_WIDTH = 1;
-	protected static int MINI_DAY_NUMBER_TEXT_SIZE;
-	protected static int MIN_HEIGHT = 10;
-	protected static int MONTH_DAY_LABEL_TEXT_SIZE;
-	protected static int MONTH_HEADER_SIZE;
-	protected static int MONTH_LABEL_TEXT_SIZE;
+    protected final static int DAY_SEPARATOR_WIDTH = 1;
+    protected final static int MIN_HEIGHT = 10;
+
+	private int daySelectedCircleSize;
+	private int miniDayNumberTextSize;
+	private int monthDayLabelTextSize;
+	private int monthHeaderSize;
+	private int monthLabelTextSize;
 
     private final int mDayDisabledTextColor;
-    protected int mPadding = 0;
+    private int mPadding = 0;
 
     private String mDayOfWeekTypeface;
     private String mMonthTitleTypeface;
 
-    protected Paint mMonthDayLabelPaint;
-    protected Paint mMonthNumPaint;
-    protected Paint mMonthTitleBGPaint;
-    protected Paint mMonthTitlePaint;
-    protected Paint mSelectedCirclePaint;
-    protected Paint mHoveredCirclePaint;
+    private Paint mMonthDayLabelPaint;
+    private Paint mMonthNumPaint;
+    private Paint mMonthTitlePaint;
+    private Paint mSelectedCirclePaint;
+    private Paint mHoveredCirclePaint;
 
-    protected int mDayTextColor;
-    protected int mSelectedTextColor;
+    private int mDayTextColor;
+    private int mSelectedTextColor;
 
-    protected int mMonthTitleBGColor;
-    protected int mMonthTitleColor;
-    protected int mTodayNumberColor;
+    private int mTodayNumberColor;
 
     private final StringBuilder mStringBuilder;
 
-    protected boolean mHasToday = false;
-    protected int mSelectedDay = -1;
-    protected int mHoveredDay = -1;
-    protected int mToday = -1;
-    protected int mWeekStart = 1;
-    protected int mNumDays = 7;
-    protected int mNumCells = mNumDays;
+    private boolean mHasToday = false;
+    private int mSelectedDay = -1;
+    private int mHoveredDay = -1;
+    private int mToday = -1;
+    private int mWeekStart = 1;
+    private int mNumDays = 7;
+    private int mNumCells = mNumDays;
     private int mDayOfWeekStart = 0;
-    protected int mMonth;
-    protected int mRowHeight = DEFAULT_HEIGHT;
-    protected int mWidth;
-    protected int mYear;
+    private int mMonth;
+    private int mRowHeight = DEFAULT_HEIGHT;
+    private int mWidth;
+    private int mYear;
 
 	private final Calendar mCalendar;
 	private final Calendar mDayLabelCalendar;
@@ -105,18 +105,15 @@ public class SimpleMonthView extends View {
         mDayDisabledTextColor = resources.getColor(R.color.done_text_color_disabled);
 		mTodayNumberColor = Utils.getPrimaryColor(context);
 
-		mMonthTitleColor = resources.getColor(R.color.white);
-		mMonthTitleBGColor = resources.getColor(R.color.circle_background);
-
 		mStringBuilder = new StringBuilder(50);
 
-		MINI_DAY_NUMBER_TEXT_SIZE = resources.getDimensionPixelSize(R.dimen.day_number_size);
-		MONTH_LABEL_TEXT_SIZE = resources.getDimensionPixelSize(R.dimen.month_label_size);
-		MONTH_DAY_LABEL_TEXT_SIZE = resources.getDimensionPixelSize(R.dimen.month_day_label_text_size);
-		MONTH_HEADER_SIZE = resources.getDimensionPixelOffset(R.dimen.month_list_item_header_height);
-		DAY_SELECTED_CIRCLE_SIZE = resources.getDimensionPixelSize(R.dimen.day_number_select_circle_radius);
+		miniDayNumberTextSize = resources.getDimensionPixelSize(R.dimen.day_number_size);
+		monthLabelTextSize = resources.getDimensionPixelSize(R.dimen.month_label_size);
+		monthDayLabelTextSize = resources.getDimensionPixelSize(R.dimen.month_day_label_text_size);
+		monthHeaderSize = resources.getDimensionPixelOffset(R.dimen.month_list_item_header_height);
+		daySelectedCircleSize = resources.getDimensionPixelSize(R.dimen.day_number_select_circle_radius);
 
-		mRowHeight = ((resources.getDimensionPixelOffset(R.dimen.date_picker_view_animator_height) - MONTH_HEADER_SIZE) / 6);
+		mRowHeight = ((resources.getDimensionPixelOffset(R.dimen.date_picker_view_animator_height) - monthHeaderSize) / 6);
 
         initView();
 	}
@@ -129,7 +126,7 @@ public class SimpleMonthView extends View {
 	}
 
 	private void drawMonthDayLabels(Canvas canvas) {
-        int y = MONTH_HEADER_SIZE - (MONTH_DAY_LABEL_TEXT_SIZE / 2);
+        int y = monthHeaderSize - (monthDayLabelTextSize / 2);
         int dayWidthHalf = (mWidth - mPadding * 2) / (mNumDays * 2);
 
         for (int i = 0; i < mNumDays; i++) {
@@ -143,7 +140,7 @@ public class SimpleMonthView extends View {
 
 	private void drawMonthTitle(Canvas canvas) {
         int x = (mWidth + 2 * mPadding) / 2;
-        int y = (MONTH_HEADER_SIZE - MONTH_DAY_LABEL_TEXT_SIZE) / 2 + (MONTH_LABEL_TEXT_SIZE / 3);
+        int y = (monthHeaderSize - monthDayLabelTextSize) / 2 + (monthLabelTextSize / 3);
         canvas.drawText(getMonthAndYearString(), x, y, mMonthTitlePaint);
 	}
 
@@ -170,7 +167,7 @@ public class SimpleMonthView extends View {
 	}
 
 	protected void drawMonthNums(Canvas canvas) {
-		int y = (mRowHeight + MINI_DAY_NUMBER_TEXT_SIZE) / 2 - DAY_SEPARATOR_WIDTH + MONTH_HEADER_SIZE;
+		int y = (mRowHeight + miniDayNumberTextSize) / 2 - DAY_SEPARATOR_WIDTH + monthHeaderSize;
 		int paddingDay = (mWidth - 2 * mPadding) / (2 * mNumDays);
 		int dayOffset = findDayOffset();
 		int day = 1;
@@ -199,10 +196,10 @@ public class SimpleMonthView extends View {
                 // Only show circles if this is not a disabled day.
                 if (mSelectedDay == day) {
                     textColor = mSelectedTextColor;
-                    canvas.drawCircle(x, y - MINI_DAY_NUMBER_TEXT_SIZE / 3, DAY_SELECTED_CIRCLE_SIZE, mSelectedCirclePaint);
+                    canvas.drawCircle(x, y - miniDayNumberTextSize / 3, daySelectedCircleSize, mSelectedCirclePaint);
 
                 } else if (mHoveredDay == day) {
-                    canvas.drawCircle(x, y - MINI_DAY_NUMBER_TEXT_SIZE / 3, DAY_SELECTED_CIRCLE_SIZE, mHoveredCirclePaint);
+                    canvas.drawCircle(x, y - miniDayNumberTextSize / 3, daySelectedCircleSize, mHoveredCirclePaint);
                 }
             } else {
                 textColor = mDayDisabledTextColor;
@@ -226,7 +223,7 @@ public class SimpleMonthView extends View {
 			return null;
 		}
 
-		int yDay = (int) (y - MONTH_HEADER_SIZE) / mRowHeight;
+		int yDay = (int) (y - monthHeaderSize) / mRowHeight;
 		int day = 1 + ((int) ((x - padding) * mNumDays / (mWidth - padding - mPadding)) - findDayOffset()) + yDay * mNumDays;
 
         if (day <= 0 || day > mNumCells) {
@@ -241,18 +238,11 @@ public class SimpleMonthView extends View {
         mMonthTitlePaint = new Paint();
         mMonthTitlePaint.setFakeBoldText(true);
         mMonthTitlePaint.setAntiAlias(true);
-        mMonthTitlePaint.setTextSize(MONTH_LABEL_TEXT_SIZE);
+        mMonthTitlePaint.setTextSize(monthLabelTextSize);
         mMonthTitlePaint.setTypeface(Typeface.create(mMonthTitleTypeface, Typeface.BOLD));
         mMonthTitlePaint.setColor(mDayTextColor);
         mMonthTitlePaint.setTextAlign(Align.CENTER);
         mMonthTitlePaint.setStyle(Style.FILL);
-
-        mMonthTitleBGPaint = new Paint();
-        mMonthTitleBGPaint.setFakeBoldText(true);
-        mMonthTitleBGPaint.setAntiAlias(true);
-        mMonthTitleBGPaint.setColor(mMonthTitleBGColor);
-        mMonthTitleBGPaint.setTextAlign(Align.CENTER);
-        mMonthTitleBGPaint.setStyle(Style.FILL);
 
         mSelectedCirclePaint = new Paint();
         mSelectedCirclePaint.setFakeBoldText(true);
@@ -270,7 +260,7 @@ public class SimpleMonthView extends View {
 
         mMonthDayLabelPaint = new Paint();
         mMonthDayLabelPaint.setAntiAlias(true);
-        mMonthDayLabelPaint.setTextSize(MONTH_DAY_LABEL_TEXT_SIZE);
+        mMonthDayLabelPaint.setTextSize(monthDayLabelTextSize);
         mMonthDayLabelPaint.setColor(mDayTextColor);
         mMonthDayLabelPaint.setTypeface(Typeface.create(mDayOfWeekTypeface, Typeface.NORMAL));
         mMonthDayLabelPaint.setStyle(Style.FILL);
@@ -279,20 +269,20 @@ public class SimpleMonthView extends View {
 
         mMonthNumPaint = new Paint();
         mMonthNumPaint.setAntiAlias(true);
-        mMonthNumPaint.setTextSize(MINI_DAY_NUMBER_TEXT_SIZE);
+        mMonthNumPaint.setTextSize(miniDayNumberTextSize);
         mMonthNumPaint.setStyle(Style.FILL);
         mMonthNumPaint.setTextAlign(Align.CENTER);
         mMonthNumPaint.setFakeBoldText(false);
 	}
 
 	protected void onDraw(Canvas canvas) {
-		drawMonthTitle(canvas);
+        drawMonthTitle(canvas);
 		drawMonthDayLabels(canvas);
 		drawMonthNums(canvas);
 	}
 
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        setMeasuredDimension(View.MeasureSpec.getSize(widthMeasureSpec), mRowHeight * mNumRows + MONTH_HEADER_SIZE + getResources().getDimensionPixelOffset(R.dimen.month_view_bottom_pad));
+        setMeasuredDimension(View.MeasureSpec.getSize(widthMeasureSpec), mRowHeight * mNumRows + monthHeaderSize + getResources().getDimensionPixelOffset(R.dimen.month_view_bottom_pad));
     }
 
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
@@ -379,6 +369,8 @@ public class SimpleMonthView extends View {
                 mRowHeight = MIN_HEIGHT;
             }
         }
+
+        mSelectedDay = -1;
         if (params.containsKey(VIEW_PARAMS_SELECTED_DAY)) {
             mSelectedDay = params.get(VIEW_PARAMS_SELECTED_DAY);
         }
