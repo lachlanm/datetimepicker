@@ -40,6 +40,8 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
     private static final int MAX_YEAR = 2037;
     private static final int MIN_YEAR = 1902;
 
+    private static final int MONTHS_IN_YEAR = 12;
+
     private static final int UNINITIALIZED = -1;
     private static final int MONTH_AND_DAY_VIEW = 0;
     private static final int YEAR_VIEW = 1;
@@ -248,7 +250,7 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
     }
 
     public int getMonthCount() {
-        return (getMaxYear() - getMinYear()) * SimpleMonthAdapter.MONTHS_IN_YEAR + getLastMonth() - getFirstMonth() + 1;
+        return (getMaxYear() - getMinYear()) * MONTHS_IN_YEAR + getLastMonth() - getFirstMonth() + 1;
     }
 
     public CalendarDay getSelectedDay() {
@@ -362,7 +364,7 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
 
         if (listPosition != -1) {
             if (currentView == MONTH_AND_DAY_VIEW) {
-                mDayPickerView.postSetSelection(listPosition);
+                mDayPickerView.setCurrentItem(listPosition);
             }
             if (currentView == YEAR_VIEW) {
                 mYearPickerView.postSetSelectionFromTop(listPosition, listPositionOffset);
@@ -405,7 +407,7 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
 
         int listPosition = -1;
         if (mCurrentView == 0) {
-            listPosition = mDayPickerView.getMostVisiblePosition();
+            listPosition = mDayPickerView.getCurrentItem();
         }
         if (mCurrentView == 1) {
             listPosition = mYearPickerView.getFirstVisiblePosition();

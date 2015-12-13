@@ -65,8 +65,6 @@ public class SimpleMonthView extends View {
 
     private int mTodayNumberColor;
 
-    private final StringBuilder mStringBuilder;
-
     private boolean mHasToday = false;
     private int mSelectedDay = -1;
     private int mHoveredDay = -1;
@@ -105,15 +103,13 @@ public class SimpleMonthView extends View {
         mDayDisabledTextColor = resources.getColor(R.color.done_text_color_disabled);
 		mTodayNumberColor = Utils.getPrimaryColor(context);
 
-		mStringBuilder = new StringBuilder(50);
-
 		miniDayNumberTextSize = resources.getDimensionPixelSize(R.dimen.day_number_size);
 		monthLabelTextSize = resources.getDimensionPixelSize(R.dimen.month_label_size);
 		monthDayLabelTextSize = resources.getDimensionPixelSize(R.dimen.month_day_label_text_size);
 		monthHeaderSize = resources.getDimensionPixelOffset(R.dimen.month_list_item_header_height);
 		daySelectedCircleSize = resources.getDimensionPixelSize(R.dimen.day_number_select_circle_radius);
 
-		mRowHeight = ((resources.getDimensionPixelOffset(R.dimen.date_picker_view_animator_height) - monthHeaderSize) / 6);
+		mRowHeight = ((resources.getDimensionPixelOffset(R.dimen.date_picker_view_animator_height) - monthHeaderSize) / DEFAULT_NUM_ROWS);
 
         initView();
 	}
@@ -151,7 +147,6 @@ public class SimpleMonthView extends View {
 
 	private String getMonthAndYearString() {
         int flags = DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_YEAR | DateUtils.FORMAT_NO_MONTH_DAY;
-        mStringBuilder.setLength(0);
         long millis = mCalendar.getTimeInMillis();
         return DateUtils.formatDateRange(getContext(), millis, millis, flags);
     }
@@ -265,14 +260,12 @@ public class SimpleMonthView extends View {
         mMonthDayLabelPaint.setTypeface(Typeface.create(mDayOfWeekTypeface, Typeface.NORMAL));
         mMonthDayLabelPaint.setStyle(Style.FILL);
         mMonthDayLabelPaint.setTextAlign(Align.CENTER);
-        mMonthDayLabelPaint.setFakeBoldText(true);
 
         mMonthNumPaint = new Paint();
         mMonthNumPaint.setAntiAlias(true);
         mMonthNumPaint.setTextSize(miniDayNumberTextSize);
         mMonthNumPaint.setStyle(Style.FILL);
         mMonthNumPaint.setTextAlign(Align.CENTER);
-        mMonthNumPaint.setFakeBoldText(false);
 	}
 
 	protected void onDraw(Canvas canvas) {
@@ -410,7 +403,20 @@ public class SimpleMonthView extends View {
 		mOnDayClickListener = onDayClickListener;
 	}
 
-	public static abstract interface OnDayClickListener {
+    public int getMonth() {
+        return mMonth;
+    }
+
+    public int getYear() {
+        return mYear;
+    }
+
+    public void clearSelection() {
+        mSelectedDay = -1;
+        invalidate();
+    }
+
+    public static abstract interface OnDayClickListener {
 		public abstract void onDayClick(SimpleMonthView simpleMonthView, CalendarDay calendarDay);
 	}
 }
