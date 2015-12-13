@@ -5,7 +5,8 @@
     <color name="circle_background">#fff2f2f2</color>
     <color name="line_background">#ffcccccc</color>
     <color name="done_text_color_disabled">#ffcccccc</color>
-    <color name="date_picker_text_normal">#ff999999</color>
+    <color name="date_picker_text_normal">#000000</color>
+    <color name="date_picker_text_selected">#ffffff</color>
     <color name="date_picker_view_animator">#fff2f2f2</color>
 
     <color name="ampm_text_color">#8c8c8c</color>

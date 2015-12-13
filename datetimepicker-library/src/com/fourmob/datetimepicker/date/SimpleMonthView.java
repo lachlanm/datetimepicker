@@ -7,6 +7,7 @@ import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.support.annotation.Nullable;
 import android.text.format.DateUtils;
 import android.text.format.Time;
 import android.view.MotionEvent;
@@ -17,7 +18,6 @@ import com.fourmob.datetimepicker.Utils;
 import java.security.InvalidParameterException;
 import java.text.DateFormatSymbols;
 import java.util.Calendar;
-import java.util.Formatter;
 import java.util.HashMap;
 import java.util.Locale;
 
@@ -28,13 +28,9 @@ public class SimpleMonthView extends View {
     public static final String VIEW_PARAMS_YEAR = "year";
     public static final String VIEW_PARAMS_SELECTED_DAY = "selected_day";
     public static final String VIEW_PARAMS_WEEK_START = "week_start";
-    public static final String VIEW_PARAMS_NUM_DAYS = "num_days";
-    public static final String VIEW_PARAMS_FOCUS_MONTH = "focus_month";
-    public static final String VIEW_PARAMS_SHOW_WK_NUM = "show_wk_num";
     public static final String VIEW_PARAMS_MIN_DATE_DAY = "minDateDay";
     public static final String VIEW_PARAMS_MAX_DATE_DAY = "maxDateDay";
 
-    private static final int SELECTED_CIRCLE_ALPHA = 60;
     public static final String VIEW_PARAMS_MIN_DATE_MONTH = "minDateMonth";
     public static final String VIEW_PARAMS_MIN_DATE_YEAR ="minDateYear" ;
     public static final String VIEW_PARAMS_MAX_DATE_MONTH = "maxDateMonth";
@@ -49,7 +45,6 @@ public class SimpleMonthView extends View {
 	protected static int MONTH_HEADER_SIZE;
 	protected static int MONTH_LABEL_TEXT_SIZE;
 
-	protected static float mScale = 0.0F;
     private final int mDayDisabledTextColor;
     protected int mPadding = 0;
 
@@ -61,25 +56,24 @@ public class SimpleMonthView extends View {
     protected Paint mMonthTitleBGPaint;
     protected Paint mMonthTitlePaint;
     protected Paint mSelectedCirclePaint;
+    protected Paint mHoveredCirclePaint;
+
     protected int mDayTextColor;
+    protected int mSelectedTextColor;
+
     protected int mMonthTitleBGColor;
     protected int mMonthTitleColor;
     protected int mTodayNumberColor;
 
     private final StringBuilder mStringBuilder;
-    private final Formatter mFormatter;
 
-    protected int mFirstJulianDay = -1;
-    protected int mFirstMonth = -1;
-    protected int mLastMonth = -1;
     protected boolean mHasToday = false;
     protected int mSelectedDay = -1;
+    protected int mHoveredDay = -1;
     protected int mToday = -1;
     protected int mWeekStart = 1;
     protected int mNumDays = 7;
     protected int mNumCells = mNumDays;
-    protected int mSelectedLeft = -1;
-    protected int mSelectedRight = -1;
     private int mDayOfWeekStart = 0;
     protected int mMonth;
     protected int mRowHeight = DEFAULT_HEIGHT;
@@ -105,14 +99,16 @@ public class SimpleMonthView extends View {
 
 		mDayOfWeekTypeface = resources.getString(R.string.day_of_week_label_typeface);
 		mMonthTitleTypeface = resources.getString(R.string.sans_serif);
+
 		mDayTextColor = resources.getColor(R.color.date_picker_text_normal);
+        mSelectedTextColor = resources.getColor(R.color.date_picker_text_selected);
         mDayDisabledTextColor = resources.getColor(R.color.done_text_color_disabled);
 		mTodayNumberColor = Utils.getPrimaryColor(context);
+
 		mMonthTitleColor = resources.getColor(R.color.white);
 		mMonthTitleBGColor = resources.getColor(R.color.circle_background);
 
 		mStringBuilder = new StringBuilder(50);
-		mFormatter = new Formatter(mStringBuilder, Locale.getDefault());
 
 		MINI_DAY_NUMBER_TEXT_SIZE = resources.getDimensionPixelSize(R.dimen.day_number_size);
 		MONTH_LABEL_TEXT_SIZE = resources.getDimensionPixelSize(R.dimen.month_label_size);
@@ -179,30 +175,40 @@ public class SimpleMonthView extends View {
 		int dayOffset = findDayOffset();
 		int day = 1;
         boolean hasDisabledDays = false;
-        if(mMinDate != null && mMonth <= mMinDate.month && mYear <= mMinDate.year){
+        if (mMinDate != null && mMonth <= mMinDate.month && mYear <= mMinDate.year) {
             hasDisabledDays = true;
         }
         if (mMaxDate != null && mMonth >= mMaxDate.month && mYear >= mMaxDate.year) {
             hasDisabledDays = true;
         }
-		while (day <= mNumCells) {
+
+        while (day <= mNumCells) {
+            boolean isDisabledDay = false;
 			int x = paddingDay * (1 + dayOffset * 2) + mPadding;
-			if (mSelectedDay == day) {
-				canvas.drawCircle(x, y - MINI_DAY_NUMBER_TEXT_SIZE / 3, DAY_SELECTED_CIRCLE_SIZE, mSelectedCirclePaint);
-            }
-            if (mHasToday && (mToday == day)) {
-				mMonthNumPaint.setColor(mTodayNumberColor);
-            } else {
-                mMonthNumPaint.setColor(mDayTextColor);
-                if(hasDisabledDays){
-                    if(mMinDate != null && mMinDate.isAfter(new CalendarDay(mYear,mMonth,day))) {
-                        mMonthNumPaint.setColor(mDayDisabledTextColor);
-                    } else if (mMaxDate != null && mMaxDate.isBefore(new CalendarDay(mYear,mMonth,day))) {
-                        mMonthNumPaint.setColor(mDayDisabledTextColor);
-                    }
-                }
+
+            if (hasDisabledDays) {
+                isDisabledDay = isDisabledDay(day);
             }
 
+            int textColor = mDayTextColor;
+            if (!isDisabledDay) {
+                if (mHasToday && (mToday == day)) {
+                    textColor = mTodayNumberColor;
+                }
+
+                // Only show circles if this is not a disabled day.
+                if (mSelectedDay == day) {
+                    textColor = mSelectedTextColor;
+                    canvas.drawCircle(x, y - MINI_DAY_NUMBER_TEXT_SIZE / 3, DAY_SELECTED_CIRCLE_SIZE, mSelectedCirclePaint);
+
+                } else if (mHoveredDay == day) {
+                    canvas.drawCircle(x, y - MINI_DAY_NUMBER_TEXT_SIZE / 3, DAY_SELECTED_CIRCLE_SIZE, mHoveredCirclePaint);
+                }
+            } else {
+                textColor = mDayDisabledTextColor;
+            }
+
+            mMonthNumPaint.setColor(textColor);
 			canvas.drawText(String.format("%d", day), x, y, mMonthNumPaint);
 
 			dayOffset++;
@@ -214,7 +220,7 @@ public class SimpleMonthView extends View {
 		}
 	}
 
-	public CalendarDay getDayFromLocation(float x, float y) {
+	public @Nullable CalendarDay getDayFromLocation(float x, float y) {
 		int padding = mPadding;
 		if ((x < padding) || (x > mWidth - mPadding)) {
 			return null;
@@ -222,6 +228,11 @@ public class SimpleMonthView extends View {
 
 		int yDay = (int) (y - MONTH_HEADER_SIZE) / mRowHeight;
 		int day = 1 + ((int) ((x - padding) * mNumDays / (mWidth - padding - mPadding)) - findDayOffset()) + yDay * mNumDays;
+
+        if (day <= 0 || day > mNumCells) {
+            // Since this isn't part of the month being displayed, return an invalid result.
+            return null;
+        }
 
 		return new CalendarDay(mYear, mMonth, day);
 	}
@@ -249,7 +260,13 @@ public class SimpleMonthView extends View {
         mSelectedCirclePaint.setColor(mTodayNumberColor);
         mSelectedCirclePaint.setTextAlign(Align.CENTER);
         mSelectedCirclePaint.setStyle(Style.FILL);
-        mSelectedCirclePaint.setAlpha(SELECTED_CIRCLE_ALPHA);
+
+        mHoveredCirclePaint = new Paint();
+        mHoveredCirclePaint.setFakeBoldText(true);
+        mHoveredCirclePaint.setAntiAlias(true);
+        mHoveredCirclePaint.setColor(mDayDisabledTextColor);
+        mHoveredCirclePaint.setTextAlign(Align.CENTER);
+        mHoveredCirclePaint.setStyle(Style.FILL);
 
         mMonthDayLabelPaint = new Paint();
         mMonthDayLabelPaint.setAntiAlias(true);
@@ -282,15 +299,60 @@ public class SimpleMonthView extends View {
 		mWidth = w;
 	}
 
+    private boolean isValidCalendarDay(CalendarDay calendarDay) {
+        return calendarDay != null && !isDisabledDay(calendarDay.day);
+    }
+
+    private boolean isDisabledDay(int day) {
+        return (mMinDate != null && mMinDate.isAfter(new CalendarDay(mYear, mMonth, day))) ||
+                (mMaxDate != null && mMaxDate.isBefore(new CalendarDay(mYear, mMonth, day)));
+    }
+
 	public boolean onTouchEvent(MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_UP) {
-            CalendarDay calendarDay = getDayFromLocation(event.getX(), event.getY());
-            if (calendarDay != null) {
-                onDayClick(calendarDay);
-            }
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_UP:
+                CalendarDay selectedCalendarDay = getDayFromLocation(event.getX(), event.getY());
+                if (isValidCalendarDay(selectedCalendarDay)) {
+
+                    // Only invalidate if the value has changed.
+                    if (selectedCalendarDay.day != mSelectedDay) {
+                        onDayClick(selectedCalendarDay);
+
+                        mSelectedDay = selectedCalendarDay.day;
+                        invalidate();
+                    }
+
+                    return true;
+                }
+                break;
+
+            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_MOVE:
+                CalendarDay hoveredCalendarDay = getDayFromLocation(event.getX(), event.getY());
+                if (isValidCalendarDay(hoveredCalendarDay)) {
+
+                    // Only invalidate if the value has changed.
+                    if (hoveredCalendarDay.day != mHoveredDay) {
+                        mHoveredDay = hoveredCalendarDay.day;
+                        invalidate();
+                    }
+
+                    return true;
+                }
+                break;
+
+            default:
+                break;
         }
+
+        // We need to remove the hover effect.
+        if (mHoveredDay != -1) {
+            mHoveredDay = -1;
+            invalidate();
+        }
+
         return true;
-	}
+    }
 
 	public void reuse() {
         mNumRows = DEFAULT_NUM_ROWS;
