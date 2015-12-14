@@ -18,21 +18,22 @@ import com.fourmob.datetimepicker.R;
 import java.util.ArrayList;
 import java.util.List;
 
-public class YearPickerView extends LinearLayout implements AdapterView.OnItemClickListener, DatePickerDialog.OnDateChangedListener, AbsListView.OnScrollListener {
+public class YearPickerView extends LinearLayout implements AdapterView.OnItemClickListener, AbsListView.OnScrollListener {
 
 	private ListView mListView;
 	private YearAdapter mAdapter;
 
+	ArrayList<Integer> yearRange = new ArrayList<Integer>();
+	private int mSelectedYear = -1;
+	private YearPickerListener mListener;
+
 	private View mMoreContentIndicator;
 	private boolean mUseContentIndicator;
 
-	private final DatePickerController mController;
 	private int mViewSize;
 
-	public YearPickerView(Context context, DatePickerController datePickerController) {
+	public YearPickerView(Context context) {
 		super(context);
-		mController = datePickerController;
-		mController.registerOnDateChangedListener(this);
 
 		setOrientation(VERTICAL);
 
@@ -53,35 +54,28 @@ public class YearPickerView extends LinearLayout implements AdapterView.OnItemCl
 		mMoreContentIndicator = LayoutInflater.from(context).inflate(R.layout.year_picker_footer, this, false);
 		addView(mMoreContentIndicator);
 
-		init();
+		mAdapter = new YearAdapter(yearRange);
+		mListView.setAdapter(mAdapter);
+
 		mListView.setOnScrollListener(this);
 		mListView.setOnItemClickListener(this);
 		mListView.setDividerHeight(0);
-		onDateChanged();
 	}
 
     private static int getYearFromTextView(TextView view) {
         return Integer.valueOf(view.getText().toString());
     }
 
-	private void init() {
-		ArrayList<Integer> years = new ArrayList<Integer>();
-		for (int year = mController.getMinYear(); year <= mController.getMaxYear(); year++) {
-			years.add(year);
-		}
-		mAdapter = new YearAdapter(years);
-		mListView.setAdapter(mAdapter);
-
-		// Check whether the 'more content indicator should be visible at all'
-		if (isAtBottom()) {
-			mUseContentIndicator = false;
-			mMoreContentIndicator.setVisibility(GONE);
-		}
-	}
-
 	private boolean isAtBottom() {
-		return mListView.getLastVisiblePosition() == mListView.getAdapter().getCount() -1 &&
-				mListView.getChildAt(mListView.getChildCount() - 1).getBottom() <= mListView.getHeight();
+		int count = mListView.getAdapter().getCount();
+		if (count == 0) {
+			return true;
+		}
+
+		if (mListView.getLastVisiblePosition() == count - 1) {
+			return mListView.getChildAt(count - 1).getBottom() <= mListView.getHeight();
+		}
+		return false;
 	}
 
 	public int getFirstPositionOffset() {
@@ -92,22 +86,39 @@ public class YearPickerView extends LinearLayout implements AdapterView.OnItemCl
         return firstChild.getTop();
 	}
 
-	public void onDateChanged() {
+	public void updateContent(int selectedYear, int minYear, int maxYear) {
+		mSelectedYear = selectedYear;
+
+		// Update the year range if needed.
+		if (yearRange.size() > 0 && (yearRange.get(0) != minYear || yearRange.get(yearRange.size() - 1) != maxYear)) {
+			yearRange.clear();
+		}
+		if (yearRange.size() == 0) {
+			for (int year = minYear; year <= maxYear; year++) {
+				yearRange.add(year);
+			}
+		}
+
 		mAdapter.notifyDataSetChanged();
-		postSetSelectionCentered(mController.getSelectedDay().year - mController.getMinYear());
+
+		// Check whether the 'more content indicator should be visible at all'
+		if (isAtBottom()) {
+			mUseContentIndicator = false;
+			mMoreContentIndicator.setVisibility(GONE);
+		}
+
+		postSetSelectionFromTop(selectedYear - minYear, mViewSize / 3);
 	}
 
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        mController.tryVibrate();
         TextView clickedView = (TextView) view;
         if (clickedView != null) {
-            mController.onYearSelected(getYearFromTextView(clickedView));
-            mAdapter.notifyDataSetChanged();
-        }
-	}
+			mAdapter.notifyDataSetChanged();
 
-	public void postSetSelectionCentered(int position) {
-		postSetSelectionFromTop(position, mViewSize / 3);
+			if (mListener != null) {
+				mListener.onYearSelected(getYearFromTextView(clickedView));
+			}
+        }
 	}
 
 	public void postSetSelectionFromTop(final int position, final int y) {
@@ -145,6 +156,14 @@ public class YearPickerView extends LinearLayout implements AdapterView.OnItemCl
 		}
 	}
 
+	public void setListener(YearPickerListener listener) {
+		mListener = listener;
+	}
+
+	public interface YearPickerListener {
+		void onYearSelected(int year);
+	}
+
 	private class YearAdapter extends BaseAdapter {
 		private static final int DEFAULT_ITEM_TYPE = 0;
 		private static final int SELECTED_ITEM_TYPE = 1;
@@ -171,7 +190,7 @@ public class YearPickerView extends LinearLayout implements AdapterView.OnItemCl
 
 		@Override
 		public int getItemViewType(int position) {
-			if (getItem(position) == mController.getSelectedDay().year) {
+			if (getItem(position) == mSelectedYear) {
 				return SELECTED_ITEM_TYPE;
 			}
 			return DEFAULT_ITEM_TYPE;

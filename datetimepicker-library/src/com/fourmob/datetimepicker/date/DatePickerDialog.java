@@ -7,6 +7,7 @@ import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.os.Vibrator;
+import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
@@ -24,12 +25,9 @@ import com.nineoldandroids.animation.ObjectAnimator;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Locale;
 
-public class DatePickerDialog extends DialogFragment implements View.OnClickListener, DatePickerController {
+public class DatePickerDialog extends DialogFragment implements View.OnClickListener, YearPickerView.YearPickerListener, DayPickerView.DayPickerListener {
 
     private static final String KEY_SELECTED_YEAR = "year";
     private static final String KEY_SELECTED_MONTH = "month";
@@ -37,10 +35,8 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
     private static final String KEY_VIBRATE = "vibrate";
 
     // https://code.google.com/p/android/issues/detail?id=13050
-    private static final int MAX_YEAR = 2037;
-    private static final int MIN_YEAR = 1902;
-
-    private static final int MONTHS_IN_YEAR = 12;
+    private static final CalendarDay MINIMUM_POSSIBLE_DATE = new CalendarDay(1902, 1, 1);
+    private static final CalendarDay MAXIMUM_POSSIBLE_DATE = new CalendarDay(2037, 12, 31);
 
     private static final int UNINITIALIZED = -1;
     private static final int MONTH_AND_DAY_VIEW = 0;
@@ -58,7 +54,6 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
     private static SimpleDateFormat YEAR_FORMAT = new SimpleDateFormat("yyyy", Locale.getDefault());
 
     private final Calendar mCalendar = Calendar.getInstance();
-    private HashSet<OnDateChangedListener> mListeners = new HashSet<OnDateChangedListener>();
     private OnDateSetListener mCallBack;
 
     private AccessibleDateAnimator mAnimator;
@@ -82,9 +77,13 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
     private boolean mVibrate = true;
     private boolean mUsePulseAnimations = true;
     private boolean mCloseOnSingleTapDay;
-    private CalendarDay minDate;
-    private boolean viewInitialized = false;
-    private CalendarDay maxDate;
+
+    @NonNull
+    private CalendarDay mMinDate = MINIMUM_POSSIBLE_DATE;
+    @NonNull
+    private CalendarDay mMaxDate = MAXIMUM_POSSIBLE_DATE;
+
+    private boolean mIsViewInitialized = false;
 
     public DatePickerDialog() {
         // Empty constructor required for dialog fragment. DO NOT REMOVE
@@ -100,180 +99,13 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
         return datePickerDialog;
     }
 
-    /**
-     * Set the minimum allowed date
-     * Note : the month index starts from 0, rest all from 1
-     */
-    public void setMinDate(CalendarDay minDate) {
-        if (mDayPickerView != null) {
-            mDayPickerView.setMinDate(minDate);
-        }
-        this.minDate = minDate;
-    }
+    private void initialize(OnDateSetListener onDateSetListener, int year, int month, int day, boolean vibrate) {
+        if (year > MAXIMUM_POSSIBLE_DATE.year)
+            throw new IllegalArgumentException("year end must < " + MAXIMUM_POSSIBLE_DATE.year);
 
-    /**
-     * Set the maximum allowed date
-     * Note : the month index starts from 0, rest all from 1
-     */
-    public void setMaxDate(CalendarDay maxDate) {
-        if (mDayPickerView != null) {
-            mDayPickerView.setMaxDate(maxDate);
-        }
-        this.maxDate = maxDate;
-    }
+        if (year < MINIMUM_POSSIBLE_DATE.year)
+            throw new IllegalArgumentException("year end must > " + MINIMUM_POSSIBLE_DATE.year);
 
-    public void setVibrate(boolean vibrate) {
-        mVibrate = vibrate;
-    }
-
-    public void setPulseAnimationsEnabled(boolean usePulseAnimations) {
-        mUsePulseAnimations = usePulseAnimations;
-    }
-
-    private void setCurrentView(int currentView) {
-        setCurrentView(currentView, false);
-    }
-
-    private void setCurrentView(int currentView, boolean forceRefresh) {
-        long timeInMillis = mCalendar.getTimeInMillis();
-
-        TextView selectedLabel = null;
-        boolean monthAndDayViewSelected = false;
-        boolean yearViewSelected = false;
-        String contentDescription = null;
-        String announcement = null;
-
-        switch (currentView) {
-            case MONTH_AND_DAY_VIEW:
-                selectedLabel = mMonthAndDayView;
-
-                mDayPickerView.onDateChanged();
-                monthAndDayViewSelected = true;
-
-                String monthDayDesc = DateUtils.formatDateTime(getActivity(), timeInMillis, DateUtils.FORMAT_SHOW_DATE);
-                contentDescription = mDayPickerDescription + ": " + monthDayDesc;
-                announcement = mSelectDay;
-                break;
-
-            case YEAR_VIEW:
-                selectedLabel = mYearView;
-
-                mYearPickerView.onDateChanged();
-                yearViewSelected = true;
-
-                contentDescription = mYearPickerDescription + ": " + YEAR_FORMAT.format(timeInMillis);
-                announcement = mSelectYear;
-                break;
-        }
-
-        if (selectedLabel == null) {
-            return;
-        }
-
-        // Update the view switcher and set the appropriate selection state.
-        if (mCurrentView != currentView || forceRefresh) {
-            mMonthAndDayView.setSelected(monthAndDayViewSelected);
-            mYearView.setSelected(yearViewSelected);
-            mAnimator.setDisplayedChild(currentView);
-            mCurrentView = currentView;
-        }
-
-        // Shows a pulse animation when the view is clicked, or the dialog opens.
-        if (mUsePulseAnimations) {
-            ObjectAnimator pulseAnimator = Utils.getPulseAnimator(selectedLabel, 0.9F, 1.05F);
-            if (mDelayAnimation) {
-                pulseAnimator.setStartDelay(ANIMATION_DELAY);
-                mDelayAnimation = false;
-            }
-            pulseAnimator.start();
-        }
-
-        mAnimator.setContentDescription(contentDescription);
-        Utils.tryAccessibilityAnnounce(mAnimator, announcement);
-    }
-
-    private void updateDisplay(boolean announce) {
-        /*if (mDayOfWeekView != null) {
-            mDayOfWeekView.setText(mCalendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG,
-                    Locale.getDefault()).toUpperCase(Locale.getDefault()));
-        }
-
-        mSelectedMonthTextView.setText(mCalendar.getDisplayName(Calendar.MONTH, Calendar.SHORT,
-                Locale.getDefault()).toUpperCase(Locale.getDefault()));*/
-
-        this.mCalendar.setFirstDayOfWeek(mWeekStart);
-
-        mMonthAndDayView.setText(DAY_MONTH_FORMAT.format(mCalendar.getTime()));
-        mYearView.setText(YEAR_FORMAT.format(mCalendar.getTime()));
-
-        // Accessibility.
-        long millis = mCalendar.getTimeInMillis();
-        mAnimator.setDateMillis(millis);
-        int flags = DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NO_YEAR;
-        String monthAndDayText = DateUtils.formatDateTime(getActivity(), millis, flags);
-        mMonthAndDayView.setContentDescription(monthAndDayText);
-
-        if (announce) {
-            flags = DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_YEAR;
-            String fullDateText = DateUtils.formatDateTime(getActivity(), millis, flags);
-            Utils.tryAccessibilityAnnounce(mAnimator, fullDateText);
-        }
-    }
-
-    private void updatePickers() {
-        Iterator<OnDateChangedListener> iterator = mListeners.iterator();
-        while (iterator.hasNext()) {
-            iterator.next().onDateChanged();
-        }
-    }
-
-    public int getFirstDayOfWeek() {
-        return mWeekStart;
-    }
-
-    public int getMaxYear() {
-        if (maxDate == null) {
-            return MAX_YEAR;
-        }
-        return maxDate.year;
-    }
-
-    public int getMinYear() {
-        if (minDate == null) {
-            return MIN_YEAR;
-        }
-        return minDate.year;
-    }
-
-    @Override
-    public int getFirstMonth() {
-        if (minDate == null) {
-            return Calendar.JANUARY;
-        }
-        return minDate.month;
-    }
-
-    @Override
-    public int getLastMonth() {
-        if (maxDate == null) {
-            return Calendar.DECEMBER;
-        }
-        return maxDate.month;
-    }
-
-    public int getMonthCount() {
-        return (getMaxYear() - getMinYear()) * MONTHS_IN_YEAR + getLastMonth() - getFirstMonth() + 1;
-    }
-
-    public CalendarDay getSelectedDay() {
-        return new CalendarDay(mCalendar);
-    }
-
-    public void initialize(OnDateSetListener onDateSetListener, int year, int month, int day, boolean vibrate) {
-        if (year > MAX_YEAR)
-            throw new IllegalArgumentException("year end must < " + MAX_YEAR);
-        if (year < MIN_YEAR)
-            throw new IllegalArgumentException("year end must > " + MIN_YEAR);
         mCallBack = onDateSetListener;
         mCalendar.set(Calendar.YEAR, year);
         mCalendar.set(Calendar.MONTH, month);
@@ -281,35 +113,41 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
         mVibrate = vibrate;
     }
 
-    public void onClick(View view) {
-        tryVibrate();
-        if (view.getId() == R.id.date_picker_year)
-            setCurrentView(YEAR_VIEW);
-        else if (view.getId() == R.id.date_picker_month_and_day)
-            setCurrentView(MONTH_AND_DAY_VIEW);
+    @Override
+    public void onCreate(Bundle bundle) {
+        super.onCreate(bundle);
+        Activity activity = getActivity();
+        activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+        mVibrator = ((Vibrator) activity.getSystemService(Context.VIBRATOR_SERVICE));
+        if (bundle != null) {
+            mCalendar.set(Calendar.YEAR, bundle.getInt(KEY_SELECTED_YEAR));
+            mCalendar.set(Calendar.MONTH, bundle.getInt(KEY_SELECTED_MONTH));
+            mCalendar.set(Calendar.DAY_OF_MONTH, bundle.getInt(KEY_SELECTED_DAY));
+
+            CalendarDay savedMinDate = bundle.getParcelable(KEY_MIN_DATE);
+            if (savedMinDate != null) {
+                mMinDate = savedMinDate;
+            } else {
+                mMinDate = MINIMUM_POSSIBLE_DATE;
+            }
+
+            CalendarDay savedMaxDate = bundle.getParcelable(KEY_MAX_DATE);
+            if (savedMaxDate != null) {
+                mMaxDate = savedMaxDate;
+            } else {
+                mMaxDate = MAXIMUM_POSSIBLE_DATE;
+            }
+
+            mVibrate = bundle.getBoolean(KEY_VIBRATE);
+        }
     }
 
-	public void onCreate(Bundle bundle) {
-		super.onCreate(bundle);
-		Activity activity = getActivity();
-		activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-		mVibrator = ((Vibrator) activity.getSystemService(Context.VIBRATOR_SERVICE));
-		if (bundle != null) {
-			mCalendar.set(Calendar.YEAR, bundle.getInt(KEY_SELECTED_YEAR));
-			mCalendar.set(Calendar.MONTH, bundle.getInt(KEY_SELECTED_MONTH));
-			mCalendar.set(Calendar.DAY_OF_MONTH, bundle.getInt(KEY_SELECTED_DAY));
-
-			minDate = bundle.getParcelable(KEY_MIN_DATE);
-			maxDate = bundle.getParcelable(KEY_MAX_DATE);
-
-			mVibrate = bundle.getBoolean(KEY_VIBRATE);
-		}
-	}
-
+    @Override
     public View onCreateView(LayoutInflater layoutInflater, ViewGroup parent, Bundle bundle) {
         getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
-        this.viewInitialized = true;
-        View view = layoutInflater.inflate(R.layout.date_picker_dialog, null);
+        mIsViewInitialized = true;
+
+        View view = layoutInflater.inflate(R.layout.date_picker_dialog, parent, false);
 
         mMonthAndDayView = (TextView) view.findViewById(R.id.date_picker_month_and_day);
         mMonthAndDayView.setOnClickListener(this);
@@ -328,10 +166,11 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
         }
 
         Activity activity = getActivity();
-        mDayPickerView = new DayPickerView(activity, this);
-        if (this.minDate != null) mDayPickerView.setMinDate(this.minDate);
-        if (this.maxDate != null) mDayPickerView.setMaxDate(this.maxDate);
-        mYearPickerView = new YearPickerView(activity, this);
+        mDayPickerView = new DayPickerView(activity, createDayPickerParams());
+        mDayPickerView.setListener(this);
+
+        mYearPickerView = new YearPickerView(activity);
+        mYearPickerView.setListener(this);
 
         Resources resources = getResources();
         mDayPickerDescription = resources.getString(R.string.day_picker_description);
@@ -371,8 +210,8 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
         doneButton.setTextColor(selector);
         cancelButton.setTextColor(selector);
 
-        updateDisplay(false);
-        setCurrentView(currentView, true);
+        updateTitleContent(false);
+        setCurrentPicker(currentView, true);
 
         if (listPosition != -1) {
             if (currentView == MONTH_AND_DAY_VIEW) {
@@ -385,36 +224,15 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
         return view;
     }
 
-    private void onDoneButtonClick() {
-        tryVibrate();
-        if (mCallBack != null) {
-            mCallBack.onDateSet(this, mCalendar.get(Calendar.YEAR), mCalendar.get(Calendar.MONTH), mCalendar.get(Calendar.DAY_OF_MONTH));
-        }
-        dismiss();
-    }
-
-    public void onDayOfMonthSelected(int year, int month, int day) {
-        mCalendar.set(Calendar.YEAR, year);
-        mCalendar.set(Calendar.MONTH, month);
-        mCalendar.set(Calendar.DAY_OF_MONTH, day);
-        if(viewInitialized){
-            updatePickers();
-            updateDisplay(true);
-
-            if (mCloseOnSingleTapDay) {
-                onDoneButtonClick();
-            }
-        }
-    }
-
+    @Override
     public void onSaveInstanceState(Bundle bundle) {
         super.onSaveInstanceState(bundle);
         bundle.putInt(KEY_SELECTED_YEAR, mCalendar.get(Calendar.YEAR));
         bundle.putInt(KEY_SELECTED_MONTH, mCalendar.get(Calendar.MONTH));
         bundle.putInt(KEY_SELECTED_DAY, mCalendar.get(Calendar.DAY_OF_MONTH));
         bundle.putInt(KEY_WEEK_START, mWeekStart);
-        bundle.putParcelable(KEY_MIN_DATE, minDate);
-        bundle.putParcelable(KEY_MAX_DATE, maxDate);
+        bundle.putParcelable(KEY_MIN_DATE, mMinDate);
+        bundle.putParcelable(KEY_MAX_DATE, mMaxDate);
         bundle.putInt(KEY_CURRENT_VIEW, mCurrentView);
 
         int listPosition = -1;
@@ -429,7 +247,19 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
         bundle.putBoolean(KEY_VIBRATE, mVibrate);
     }
 
+    @Override
+    public void onClick(View view) {
+        tryVibrate();
+        if (view.getId() == R.id.date_picker_year)
+            setCurrentPicker(YEAR_VIEW);
+        else if (view.getId() == R.id.date_picker_month_and_day)
+            setCurrentPicker(MONTH_AND_DAY_VIEW);
+    }
+
+    @Override
     public void onYearSelected(int year) {
+        tryVibrate();
+
         // Ensure the day doesn't exceed the month.
         int day = mCalendar.get(Calendar.DAY_OF_MONTH);
         int month = mCalendar.get(Calendar.MONTH);
@@ -440,24 +270,20 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
         }
 
         // Check min and max ranges.
-        if (minDate != null) {
-            if (year == minDate.year) {
-                if (month < minDate.month) {
-                    month = minDate.month;
-                }
-                if (month == minDate.month && day < minDate.day) {
-                    day = minDate.day;
-                }
+        if (year == mMinDate.year) {
+            if (month < mMinDate.month) {
+                month = mMinDate.month;
+            }
+            if (month == mMinDate.month && day < mMinDate.day) {
+                day = mMinDate.day;
             }
         }
-        if (maxDate != null) {
-            if (year == maxDate.year) {
-                if (month > maxDate.month) {
-                    month = maxDate.month;
-                }
-                if (month == maxDate.month && day > maxDate.day) {
-                    day = maxDate.day;
-                }
+        if (year == mMaxDate.year) {
+            if (month > mMaxDate.month) {
+                month = mMaxDate.month;
+            }
+            if (month == mMaxDate.month && day > mMaxDate.day) {
+                day = mMaxDate.day;
             }
         }
 
@@ -467,12 +293,13 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
         mCalendar.set(Calendar.YEAR, year);
 
         //updatePickers();
-        setCurrentView(MONTH_AND_DAY_VIEW);
-        updateDisplay(true);
+        setCurrentPicker(MONTH_AND_DAY_VIEW);
+        updateTitleContent(true);
     }
 
-    public void registerOnDateChangedListener(OnDateChangedListener onDateChangedListener) {
-        mListeners.add(onDateChangedListener);
+    @Override
+    public void onDateSelected(int year, int month, int day) {
+        setSelectedDate(year, month, day);
     }
 
     public void setFirstDayOfWeek(int startOfWeek) {
@@ -481,45 +308,194 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
                     "Calendar.SATURDAY");
         }
         mWeekStart = startOfWeek;
-        if (mDayPickerView != null) {
-            mDayPickerView.onChange();
-        }
+        updateDayPickerParams();
     }
 
     public void setOnDateSetListener(OnDateSetListener onDateSetListener) {
         mCallBack = onDateSetListener;
     }
 
+    public void setSelectedDate(int year, int month, int day) {
+        mCalendar.set(Calendar.YEAR, year);
+        mCalendar.set(Calendar.MONTH, month);
+        mCalendar.set(Calendar.DAY_OF_MONTH, day);
+
+        if (mIsViewInitialized) {
+            updateDayPickerParams();
+            updateTitleContent(true);
+
+            if (mCloseOnSingleTapDay) {
+                onDoneButtonClick();
+            }
+        }
+    }
+
+    /**
+     * @deprecated Use {@link #setDateConstaints} instead.
+     * <p>
+     * Set the minimum allowed date
+     * Note : the month index starts from 0, rest all from 1
+     * </p>
+     */
+    public void setMinDate(CalendarDay minDate) {
+        setDateConstaints(minDate, this.mMaxDate);
+    }
+
+    /**
+     * @deprecated Use {@link #setDateConstaints} instead.
+     * <p>
+     * Set the maximum allowed date
+     * Note : the month index starts from 0, rest all from 1
+     * </p>
+     */
+    public void setMaxDate(CalendarDay maxDate) {
+        setDateConstaints(this.mMinDate, maxDate);
+    }
+
     /**
      * @deprecated Use setMinDate and setMaxDate instead.
      */
     public void setYearRange(int minYear, int maxYear) {
-        if (maxYear < minYear)
-            throw new IllegalArgumentException("Year end must be larger than year start");
-        if (maxYear > MAX_YEAR)
-            throw new IllegalArgumentException("max year end must < " + MAX_YEAR);
-        if (minYear < MIN_YEAR)
-            throw new IllegalArgumentException("min year end must > " + MIN_YEAR);
-
-        if (minDate == null) {
-            // Set the max date to the start of January.
-            minDate = new CalendarDay(minYear, 1, 1);
-        } else {
-            minDate.year = minYear;
-        }
-
-        if (maxDate == null) {
-            // Set the max date to the end of december.
-            maxDate = new CalendarDay(minYear, 12, 31);
-        } else {
-            maxDate.year = maxYear;
-        }
-
-        if (mDayPickerView != null)
-            mDayPickerView.onChange();
+        setDateConstaints(new CalendarDay(minYear, mMinDate.month, mMinDate.day), new CalendarDay(maxYear, mMaxDate.month, mMaxDate.day));
     }
 
-    public void tryVibrate() {
+    public void setDateConstaints(CalendarDay minDate, CalendarDay maxDate) {
+        if (minDate.isAfter(maxDate))
+            throw new IllegalArgumentException("Max date must be larger than min date");
+
+        if (minDate.year < MINIMUM_POSSIBLE_DATE.year)
+            throw new IllegalArgumentException("Min date year end must > " + MINIMUM_POSSIBLE_DATE.year);
+
+        if (maxDate.year > MAXIMUM_POSSIBLE_DATE.year)
+            throw new IllegalArgumentException("Max date year end must < " + MAXIMUM_POSSIBLE_DATE.year);
+
+        this.mMinDate = minDate;
+        this.mMaxDate = maxDate;
+
+        updateDayPickerParams();
+    }
+
+    public void setCloseOnSingleTapDay(boolean closeOnSingleTapDay) {
+        mCloseOnSingleTapDay = closeOnSingleTapDay;
+    }
+
+    public void setVibrate(boolean vibrate) {
+        mVibrate = vibrate;
+    }
+
+    public void setPulseAnimationsEnabled(boolean usePulseAnimations) {
+        mUsePulseAnimations = usePulseAnimations;
+    }
+
+    private void setCurrentPicker(int pickerId) {
+        setCurrentPicker(pickerId, false);
+    }
+
+    private void setCurrentPicker(int pickerId, boolean forceRefresh) {
+        long timeInMillis = mCalendar.getTimeInMillis();
+
+        TextView selectedLabel = null;
+        boolean monthAndDayViewSelected = false;
+        boolean yearViewSelected = false;
+        String contentDescription = null;
+        String announcement = null;
+
+        switch (pickerId) {
+            case MONTH_AND_DAY_VIEW:
+                selectedLabel = mMonthAndDayView;
+
+                updateDayPickerParams();
+                monthAndDayViewSelected = true;
+
+                String monthDayDesc = DateUtils.formatDateTime(getActivity(), timeInMillis, DateUtils.FORMAT_SHOW_DATE);
+                contentDescription = mDayPickerDescription + ": " + monthDayDesc;
+                announcement = mSelectDay;
+                break;
+
+            case YEAR_VIEW:
+                selectedLabel = mYearView;
+
+                mYearPickerView.updateContent(getSelectedDay().year, mMinDate.year, mMaxDate.year);
+                yearViewSelected = true;
+
+                contentDescription = mYearPickerDescription + ": " + YEAR_FORMAT.format(timeInMillis);
+                announcement = mSelectYear;
+                break;
+        }
+
+        if (selectedLabel == null) {
+            return;
+        }
+
+        // Update the view switcher and set the appropriate selection state.
+        if (mCurrentView != pickerId || forceRefresh) {
+            mMonthAndDayView.setSelected(monthAndDayViewSelected);
+            mYearView.setSelected(yearViewSelected);
+            mAnimator.setDisplayedChild(pickerId);
+            mCurrentView = pickerId;
+        }
+
+        // Shows a pulse animation when the view is clicked, or the dialog opens.
+        if (mUsePulseAnimations) {
+            ObjectAnimator pulseAnimator = Utils.getPulseAnimator(selectedLabel, 0.9F, 1.05F);
+            if (mDelayAnimation) {
+                pulseAnimator.setStartDelay(ANIMATION_DELAY);
+                mDelayAnimation = false;
+            }
+            pulseAnimator.start();
+        }
+
+        mAnimator.setContentDescription(contentDescription);
+        Utils.tryAccessibilityAnnounce(mAnimator, announcement);
+    }
+
+    private void updateTitleContent(boolean announce) {
+        this.mCalendar.setFirstDayOfWeek(mWeekStart);
+
+        mMonthAndDayView.setText(DAY_MONTH_FORMAT.format(mCalendar.getTime()));
+        mYearView.setText(YEAR_FORMAT.format(mCalendar.getTime()));
+
+        // Accessibility.
+        long millis = mCalendar.getTimeInMillis();
+        mAnimator.setDateMillis(millis);
+        int flags = DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NO_YEAR;
+        String monthAndDayText = DateUtils.formatDateTime(getActivity(), millis, flags);
+        mMonthAndDayView.setContentDescription(monthAndDayText);
+
+        if (announce) {
+            flags = DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_YEAR;
+            String fullDateText = DateUtils.formatDateTime(getActivity(), millis, flags);
+            Utils.tryAccessibilityAnnounce(mAnimator, fullDateText);
+        }
+    }
+
+    private CalendarDay getSelectedDay() {
+        return new CalendarDay(mCalendar);
+    }
+
+    private DayPickerView.DayPickerParams createDayPickerParams() {
+        return new DayPickerView.DayPickerParams(
+                mMinDate, mMaxDate, new CalendarDay(mCalendar), mWeekStart
+        );
+    }
+
+    private void updateDayPickerParams() {
+        if (mDayPickerView == null) {
+            return;
+        }
+
+        mDayPickerView.updateParams(createDayPickerParams());
+    }
+
+    private void onDoneButtonClick() {
+        tryVibrate();
+        if (mCallBack != null) {
+            mCallBack.onDateSet(this, mCalendar.get(Calendar.YEAR), mCalendar.get(Calendar.MONTH), mCalendar.get(Calendar.DAY_OF_MONTH));
+        }
+        dismiss();
+    }
+
+    private void tryVibrate() {
         if (mVibrator != null && mVibrate) {
             long timeInMillis = SystemClock.uptimeMillis();
             if (timeInMillis - mLastVibrate >= 125L) {
@@ -529,21 +505,7 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
         }
     }
 
-    public void setCloseOnSingleTapDay(boolean closeOnSingleTapDay) {
-        mCloseOnSingleTapDay = closeOnSingleTapDay;
-    }
-
-    public void setSelectedDay(GregorianCalendar date) {
-        //mCalendar.set(date.get(GregorianCalendar.YEAR), date.get(GregorianCalendar.MONTH), date.get(GregorianCalendar.DAY_OF_MONTH));
-        onDayOfMonthSelected(date.get(GregorianCalendar.YEAR), date.get(GregorianCalendar.MONTH), date.get(GregorianCalendar.DAY_OF_MONTH));
-    }
-
-
-    static abstract interface OnDateChangedListener {
-        public abstract void onDateChanged();
-    }
-
-    public static abstract interface OnDateSetListener {
-        public abstract void onDateSet(DatePickerDialog datePickerDialog, int year, int month, int day);
+    public interface OnDateSetListener {
+        void onDateSet(DatePickerDialog datePickerDialog, int year, int month, int day);
     }
 }

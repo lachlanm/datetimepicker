@@ -6,38 +6,36 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.fourmob.datetimepicker.Utils;
+
 import java.util.HashMap;
 import java.util.Stack;
 
 public class SimpleMonthPagerAdapter extends PagerAdapter implements SimpleMonthView.OnDayClickListener {
-
     private static final String TAG = "SimpleMonthAdapter";
-    protected static final int MONTHS_IN_YEAR = 12;
-
-    private final DatePickerController mController;
 
     private CalendarDay mSelectedDay;
-    private CalendarDay mMinDate;
-    private CalendarDay mMaxDate = null;
+    private int mTotalMonths;
 
     private HashMap<String, SimpleMonthView> mCurrentViews;
     private Stack<SimpleMonthView> mRecycledViewsList;
 
-    public SimpleMonthPagerAdapter(DatePickerController datePickerController) {
+    private DayPickerView.DayPickerParams mParams;
+    private MonthPagerListener mListener;
+
+    public SimpleMonthPagerAdapter(DayPickerView.DayPickerParams params) {
+        updateParams(params, false);
+
         mCurrentViews = new HashMap<>();
         mRecycledViewsList = new Stack<SimpleMonthView>();
-
-        mController = datePickerController;
-        init();
-        setSelectedDayInternal(mController.getSelectedDay());
     }
 
-    private boolean isSelectedDayInMonth(int year, int month) {
-        return (mSelectedDay.year == year) && (mSelectedDay.month == month);
+    private boolean isDayInMonth(CalendarDay date, int year, int month) {
+        return (date.year == year) && (date.month == month);
     }
 
     public int getCount() {
-        return mController.getMonthCount();
+        return mTotalMonths;
     }
 
     @Override
@@ -57,21 +55,33 @@ public class SimpleMonthPagerAdapter extends PagerAdapter implements SimpleMonth
         return monthView;
     }
 
+    public void updateParams(DayPickerView.DayPickerParams params, boolean invalidate) {
+        mParams = params;
+        mSelectedDay = mParams.selectedDate;
+
+        mTotalMonths = Utils.getMonthsBetweenDates(mParams.minDate.month, mParams.minDate.year, mParams.maxDate.month, mParams.maxDate.year);
+
+        if (invalidate) {
+            notifyDataSetChanged();
+        }
+    }
+
     @Override
     public Object instantiateItem(ViewGroup container, int position) {
         SimpleMonthView monthView = createOrRecycleMonthView(container.getContext());
 
-        final int month = (position + mController.getFirstMonth()) % MONTHS_IN_YEAR;
-        final int year = (position + mController.getFirstMonth()) / MONTHS_IN_YEAR + mController.getMinYear();
+        int firstMonth = mParams.minDate.month;
+        final int month = (position + firstMonth) % Utils.MONTHS_IN_YEAR;
+        final int year = (position + firstMonth) / Utils.MONTHS_IN_YEAR + mParams.minDate.year;
 
         int selectedDay = -1;
-        if (isSelectedDayInMonth(year, month)) {
+        if (isDayInMonth(mSelectedDay, year, month)) {
             selectedDay = mSelectedDay.day;
         }
 
         monthView.reuse();
 
-        updateParams(monthView, selectedDay, month, year);
+        updateMonthViewParams(monthView, selectedDay, month, year);
 
         container.addView(monthView);
 
@@ -89,21 +99,25 @@ public class SimpleMonthPagerAdapter extends PagerAdapter implements SimpleMonth
         mRecycledViewsList.push(recycledView);
     }
 
-    private void updateParams(SimpleMonthView monthView, int selectedDay, int month, int year) {
+    private void updateMonthViewParams(SimpleMonthView monthView, int selectedDay, int month, int year) {
         HashMap<String, Integer> drawingParams = new HashMap<String, Integer>();
         drawingParams.put(SimpleMonthView.VIEW_PARAMS_SELECTED_DAY, selectedDay);
         drawingParams.put(SimpleMonthView.VIEW_PARAMS_YEAR, year);
         drawingParams.put(SimpleMonthView.VIEW_PARAMS_MONTH, month);
-        drawingParams.put(SimpleMonthView.VIEW_PARAMS_WEEK_START, mController.getFirstDayOfWeek());
-        if (mMinDate != null) {
-            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MIN_DATE_DAY, mMinDate.day);
-            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MIN_DATE_MONTH, mMinDate.month);
-            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MIN_DATE_YEAR, mMinDate.year);
+        drawingParams.put(SimpleMonthView.VIEW_PARAMS_WEEK_START, mParams.firstDayOfWeek);
+
+        CalendarDay minDate = mParams.minDate;
+        if (minDate != null) {
+            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MIN_DATE_DAY, minDate.day);
+            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MIN_DATE_MONTH, minDate.month);
+            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MIN_DATE_YEAR, minDate.year);
         }
-        if (mMaxDate != null) {
-            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MAX_DATE_DAY, mMaxDate.day);
-            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MAX_DATE_MONTH, mMaxDate.month);
-            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MAX_DATE_YEAR, mMaxDate.year);
+
+        CalendarDay maxDate = mParams.maxDate;
+        if (maxDate != null) {
+            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MAX_DATE_DAY, maxDate.day);
+            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MAX_DATE_MONTH, maxDate.month);
+            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MAX_DATE_YEAR, maxDate.year);
         }
 
         monthView.setMonthParams(drawingParams);
@@ -120,14 +134,14 @@ public class SimpleMonthPagerAdapter extends PagerAdapter implements SimpleMonth
         return POSITION_NONE;
     }
 
-    protected void init() {
-        mSelectedDay = new CalendarDay(System.currentTimeMillis());
-    }
-
+    @Override
     public void onDayClick(SimpleMonthView simpleMonthView, CalendarDay calendarDay) {
         if (calendarDay != null) {
-            if ((this.mMinDate == null || calendarDay.isAfter(this.mMinDate) || calendarDay.equals(this.mMinDate)) &&
-                    (this.mMaxDate == null || calendarDay.isBefore(this.mMaxDate) || calendarDay.equals(this.mMaxDate))) {
+            CalendarDay minDate = mParams.minDate;
+            CalendarDay maxDate = mParams.maxDate;
+
+            if ((minDate == null || calendarDay.isAfter(minDate) || calendarDay.equals(minDate)) &&
+                    (maxDate == null || calendarDay.isBefore(maxDate) || calendarDay.equals(maxDate))) {
                 onDayTapped(calendarDay);
             } else {
                 Log.i(TAG, "ignoring push since day is after minDate or before maxDate");
@@ -136,9 +150,10 @@ public class SimpleMonthPagerAdapter extends PagerAdapter implements SimpleMonth
     }
 
     protected void onDayTapped(CalendarDay calendarDay) {
-        mController.tryVibrate();
-        mController.onDayOfMonthSelected(calendarDay.year, calendarDay.month, calendarDay.day);
         setSelectedDayInternal(calendarDay);
+        if (mListener != null) {
+            mListener.onDateSelected(calendarDay.year, calendarDay.month, calendarDay.day);
+        }
     }
 
     private void setSelectedDayInternal(CalendarDay calendarDay) {
@@ -157,33 +172,16 @@ public class SimpleMonthPagerAdapter extends PagerAdapter implements SimpleMonth
 
         SimpleMonthView monthView = mCurrentViews.get(createViewKey(calendarDay.month, calendarDay.year));
         if (monthView != null) {
-            updateParams(monthView, calendarDay.day, calendarDay.month, calendarDay.year);
+            updateMonthViewParams(monthView, calendarDay.day, calendarDay.month, calendarDay.year);
         }
     }
 
-    /**
-     * sets the min date. All previous days are disabled.
-     *
-     * @param mMinDate
-     */
-    public void setMinDate(CalendarDay mMinDate, boolean invalidate) {
-        boolean changeOccurred = (mMinDate != this.mMinDate);
-        this.mMinDate = mMinDate;
-
-        // This is a fundamental change, the entire view pager may need to change.
-        if (changeOccurred && invalidate) {
-            notifyDataSetChanged();
-        }
+    public void setListener(MonthPagerListener listener) {
+        mListener = listener;
     }
 
-    public void setMaxDate(CalendarDay mMaxDate, boolean invalidate) {
-        boolean changeOccurred = (mMaxDate != this.mMaxDate);
-        this.mMaxDate = mMaxDate;
-
-        // This is a fundamental change, the entire view pager may need to change.
-        if (changeOccurred && invalidate) {
-            notifyDataSetChanged();
-        }
+    public interface MonthPagerListener {
+        void onDateSelected(int year, int month, int day);
     }
 
 }

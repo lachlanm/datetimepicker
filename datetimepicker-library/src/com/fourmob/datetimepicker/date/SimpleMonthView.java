@@ -417,7 +417,7 @@ public class SimpleMonthView extends View {
         invalidate();
     }
 
-    public static abstract interface OnDayClickListener {
-		public abstract void onDayClick(SimpleMonthView simpleMonthView, CalendarDay calendarDay);
+    public interface OnDayClickListener {
+		void onDayClick(SimpleMonthView simpleMonthView, CalendarDay calendarDay);
 	}
 }

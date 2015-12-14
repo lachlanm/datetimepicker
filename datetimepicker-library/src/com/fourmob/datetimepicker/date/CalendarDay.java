@@ -12,20 +12,28 @@ import java.util.Date;
 public class CalendarDay implements Parcelable {
     private Calendar calendar;
 
-    int day;
-    int month;
-    int year;
+    public final int day;
+    public final int month;
+    public final int year;
 
     public CalendarDay() {
-        setTime(System.currentTimeMillis());
+        this(System.currentTimeMillis());
     }
 
     public CalendarDay(int year, int month, int day) {
-        setDay(year, month, day);
+        this.year = year;
+        this.month = month;
+        this.day = day;
     }
 
     public CalendarDay(long timeInMillis) {
-        setTime(timeInMillis);
+        if (calendar == null) {
+            calendar = Calendar.getInstance();
+        }
+        calendar.setTimeInMillis(timeInMillis);
+        month = this.calendar.get(Calendar.MONTH);
+        year = this.calendar.get(Calendar.YEAR);
+        day = this.calendar.get(Calendar.DAY_OF_MONTH);
     }
 
     public CalendarDay(Calendar calendar) {
@@ -60,28 +68,6 @@ public class CalendarDay implements Parcelable {
         dest.writeInt(year);
         dest.writeInt(month);
         dest.writeInt(day);
-    }
-
-    private void setTime(long timeInMillis) {
-        if (calendar == null) {
-            calendar = Calendar.getInstance();
-        }
-        calendar.setTimeInMillis(timeInMillis);
-        month = this.calendar.get(Calendar.MONTH);
-        year = this.calendar.get(Calendar.YEAR);
-        day = this.calendar.get(Calendar.DAY_OF_MONTH);
-    }
-
-    public void set(CalendarDay calendarDay) {
-        year = calendarDay.year;
-        month = calendarDay.month;
-        day = calendarDay.day;
-    }
-
-    public void setDay(int year, int month, int day) {
-        this.year = year;
-        this.month = month;
-        this.day = day;
     }
 
     public boolean equals(CalendarDay o) {

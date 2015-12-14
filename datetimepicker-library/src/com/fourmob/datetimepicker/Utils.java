@@ -20,6 +20,7 @@ import java.util.Calendar;
 public class Utils {
 
     public static final int PULSE_ANIMATOR_DURATION = 544;
+    public static final int MONTHS_IN_YEAR = 12;
 
 	public static int getDaysInMonth(int month, int year) {
         switch (month) {
@@ -42,6 +43,10 @@ public class Utils {
                 throw new IllegalArgumentException("Invalid Month");
         }
 	}
+
+    public static int getMonthsBetweenDates(int startMonth, int startYear, int endMonth, int endYear) {
+        return (endYear - startYear) * MONTHS_IN_YEAR + endMonth - startMonth + 1;
+    }
 
 	public static ObjectAnimator getPulseAnimator(View labelToAnimate, float decreaseRatio, float increaseRatio) {
         Keyframe k0 = Keyframe.ofFloat(0f, 1f);
