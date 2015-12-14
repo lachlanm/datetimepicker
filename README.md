@@ -13,9 +13,8 @@ You have a recurrence picker in the same style [here](https://github.com/Shusshu
 
 ## WARNING
 
-* Requires android-support-v4 and [NineOldAndroids][5]
+* Requires android-appcompat-v7 and [NineOldAndroids][5]
 * Accessibility is missing for DatePicker on all devices and Below ICS devices for TimePicker.
-* Scroll adjustment is missing below ICS devices for TimePicker and DatePicker.
 
 ## Description
 
@@ -27,7 +26,7 @@ Or browse the [source code of the sample application][3] for a complete example 
 
 ## Including in your project
 
-Last version is 0.0.4
+Last version is 0.0.5
 
 Just add the following in your build.gradle
 
@@ -39,7 +38,7 @@ repositories{
 }
 
 dependencies {
-    compile 'com.github.jaydeep17:datetimepicker:0.0.4'
+    compile 'com.github.lachlanm:datetimepicker:0.0.5'
 }
 ```
 
@@ -60,17 +59,11 @@ dependencies {
 
 2. **Change Dialog Primary Color**
 
-  Override the following colors in your project
-
-  ```xml
-  <color name="datepicker_primary">#ff4CAF50</color>
-  <color name="datepicker_primary_dark">#ff388E3C</color>
-  ```
+  Colors will be based off AppCompat colorPrimary and colorPrimaryDark. You must use a theme based on Theme.AppCompat.
 
 3. **Set Min/Max Date**
   ```java
-  datePickerDialog.setMinDate(new SimpleMonthAdapter.CalendarDay(2015, 4, 17));
-  datePickerDialog.setMaxDate(new SimpleMonthAdapter.CalendarDay(2015, 4, 20));
+  datePickerDialog.setDateConstaints(new SimpleMonthAdapter.CalendarDay(2015, 4, 17), new SimpleMonthAdapter.CalendarDay(2015, 4, 20));
   ```
 
 ## Acknowledgements
