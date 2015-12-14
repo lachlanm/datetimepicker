@@ -86,7 +86,7 @@ dependencies {
     See the License for the specific language governing permissions and
     limitations under the License.
 
- [1]: https://raw.githubusercontent.com/jaydeep17/datetimepicker/master/graphics/img1.png
- [3]: https://github.com/jaydeep17/datetimepicker/tree/master/datetimepicker-sample
- [4]: https://github.com/jaydeep17/datetimepicker/blob/master/datetimepicker-sample/src/com/fourmob/datetimepicker/sample/MainActivity.java
+ [1]: https://raw.githubusercontent.com/lachlanm/datetimepicker/master/graphics/img1.png
+ [3]: https://github.com/lachlanm/datetimepicker/tree/master/datetimepicker-sample
+ [4]: https://github.com/lachlanm/datetimepicker/blob/master/datetimepicker-sample/src/com/fourmob/datetimepicker/sample/MainActivity.java
  [5]: http://nineoldandroids.com/
