@@ -33,6 +33,7 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
     private static final String KEY_SELECTED_MONTH = "month";
     private static final String KEY_SELECTED_DAY = "day";
     private static final String KEY_VIBRATE = "vibrate";
+    private static final String KEY_PULSE_ANIMATE = "pulse_animate";
 
     // https://code.google.com/p/android/issues/detail?id=13050
     private static final CalendarDay MINIMUM_POSSIBLE_DATE = new CalendarDay(1902, 1, 1);
@@ -139,6 +140,7 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
             }
 
             mVibrate = bundle.getBoolean(KEY_VIBRATE);
+            mUsePulseAnimations = bundle.getBoolean(KEY_PULSE_ANIMATE);
         }
     }
 
@@ -245,6 +247,7 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
         }
         bundle.putInt(KEY_LIST_POSITION, listPosition);
         bundle.putBoolean(KEY_VIBRATE, mVibrate);
+        bundle.putBoolean(KEY_PULSE_ANIMATE, mUsePulseAnimations);
     }
 
     @Override
