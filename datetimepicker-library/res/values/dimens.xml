@@ -8,6 +8,7 @@
     <dimen name="selected_calendar_layout_height">155dip</dimen>
     <dimen name="date_picker_view_animator_height">270dip</dimen>
     <dimen name="month_list_item_header_height">90dip</dimen>
+    <dimen name="month_list_item_button_padding">13dip</dimen>
     <dimen name="month_day_label_text_size">12sp</dimen>
     <dimen name="day_number_select_circle_radius">16dip</dimen>
     <dimen name="month_select_circle_radius">45dip</dimen>
