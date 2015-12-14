@@ -95,7 +95,7 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
     private Handler mHandler = new Handler();
 
     public interface OnValueSelectedListener {
-        void onValueSelected(int pickerIndex, int newValue, boolean autoAdvance);
+        void onValueSelected(int pickerIndex, int newValue, boolean autoAdvance, boolean isTouchReleased);
     }
 
     public RadialPickerLayout(Context context, AttributeSet attrs) {
@@ -635,7 +635,7 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
                                 int value = reselectSelector(mDownDegrees, isInnerCircle[0],
                                         false, true);
                                 mLastValueSelected = value;
-                                mListener.onValueSelected(getCurrentItemShowing(), value, false);
+                                mListener.onValueSelected(getCurrentItemShowing(), value, false, false);
                             }
                         }, TAP_TIMEOUT);
                     }
@@ -684,7 +684,7 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
                     if (value != mLastValueSelected) {
                         tryVibrate();
                         mLastValueSelected = value;
-                        mListener.onValueSelected(getCurrentItemShowing(), value, false);
+                        mListener.onValueSelected(getCurrentItemShowing(), value, false, false);
                     }
                 }
                 return true;
@@ -692,7 +692,7 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
                 if (!mInputEnabled) {
                     // If our touch input was disabled, tell the listener to re-enable us.
                     Log.d(TAG, "Input was disabled, but received ACTION_UP.");
-                    mListener.onValueSelected(ENABLE_PICKER_INDEX, 1, false);
+                    mListener.onValueSelected(ENABLE_PICKER_INDEX, 1, false, true);
                     return true;
                 }
 
@@ -708,7 +708,7 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
                     if (isTouchingAmOrPm == mIsTouchingAmOrPm) {
                         mAmPmCirclesView.setAmOrPm(isTouchingAmOrPm);
                         if (getIsCurrentlyAmOrPm() != isTouchingAmOrPm) {
-                            mListener.onValueSelected(AMPM_INDEX, mIsTouchingAmOrPm, false);
+                            mListener.onValueSelected(AMPM_INDEX, mIsTouchingAmOrPm, false, true);
                             setValueForItem(AMPM_INDEX, isTouchingAmOrPm);
                         }
                     }
@@ -730,7 +730,7 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
                             }
                         }
                         setValueForItem(getCurrentItemShowing(), value);
-                        mListener.onValueSelected(getCurrentItemShowing(), value, true);
+                        mListener.onValueSelected(getCurrentItemShowing(), value, true, true);
                     }
                 }
                 mDoingMove = false;
@@ -856,7 +856,7 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
                 value = maxValue;
             }
             setItem(currentItemShowing, value);
-            mListener.onValueSelected(currentItemShowing, value, false);
+            mListener.onValueSelected(currentItemShowing, value, false, false);
             return true;
         }
 

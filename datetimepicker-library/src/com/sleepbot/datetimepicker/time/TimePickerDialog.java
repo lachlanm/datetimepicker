@@ -379,7 +379,7 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
      * Called by the picker for updating the header display.
      */
     @Override
-    public void onValueSelected(int pickerIndex, int newValue, boolean autoAdvance) {
+    public void onValueSelected(int pickerIndex, int newValue, boolean autoAdvance, boolean isTouchReleased) {
         if (pickerIndex == HOUR_INDEX) {
             setHour(newValue, false);
             String announcement = String.format("%d", newValue);
@@ -390,7 +390,7 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
             Utils.tryAccessibilityAnnounce(mTimePicker, announcement);
         } else if (pickerIndex == MINUTE_INDEX) {
             setMinute(newValue);
-            if(mCloseOnSingleTapMinute) {
+            if (mCloseOnSingleTapMinute && isTouchReleased) {
                 onDoneButtonClick();
             }
         } else if (pickerIndex == AMPM_INDEX) {
