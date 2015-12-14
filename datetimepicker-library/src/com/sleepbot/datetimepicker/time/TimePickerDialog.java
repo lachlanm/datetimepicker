@@ -16,6 +16,7 @@ package com.sleepbot.datetimepicker.time;
  */
 
 import android.app.ActionBar.LayoutParams;
+import android.content.res.ColorStateList;
 import android.graphics.Rect;
 import android.os.Build;
 import android.support.v4.app.DialogFragment;
@@ -106,6 +107,10 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
 
     // Enable/Disable Vibrations
     private boolean mVibrate = true;
+
+    // Enable/Disable pulse animations.
+    private boolean mUsePulseAnimations = true;
+
     private boolean mCloseOnSingleTapMinute;
 
     /**
@@ -264,13 +269,19 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
             }
         });
         mDoneButton.setOnKeyListener(keyboardListener);
-        
-        view.findViewById(R.id.cancel_button).setOnClickListener(new OnClickListener() {
+
+        TextView cancelButton = (TextView) view.findViewById(R.id.cancel_button);
+        cancelButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 dismiss();
             }
         });
+
+        // Assign the programmatic state list drawable to allow attributes.
+        ColorStateList selector = Utils.createThemedTextColorStateList(view.getContext());
+        mDoneButton.setTextColor(selector);
+        cancelButton.setTextColor(selector);
 
         // Enable or disable the AM/PM view.
         mAmPmHitspace = view.findViewById(R.id.ampm_hitspace);
@@ -422,6 +433,10 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
         mMinuteSpaceView.setText(text);
     }
 
+    public void setPulseAnimationsEnabled(boolean usePulseAnimations) {
+        mUsePulseAnimations = usePulseAnimations;
+    }
+
     // Show either Hours or Minutes.
     private void setCurrentItemShowing(int index, boolean animateCircle, boolean delayLabelAnimate,
                                        boolean announce) {
@@ -452,11 +467,13 @@ public class TimePickerDialog extends DialogFragment implements RadialPickerLayo
         mHourView.setTextColor(hourColor);
         mMinuteView.setTextColor(minuteColor);
 
-        com.nineoldandroids.animation.ObjectAnimator pulseAnimator = Utils.getPulseAnimator(labelToAnimate, 0.85f, 1.1f);
-        if (delayLabelAnimate) {
-            pulseAnimator.setStartDelay(PULSE_ANIMATOR_DELAY);
+        if (mUsePulseAnimations) {
+            com.nineoldandroids.animation.ObjectAnimator pulseAnimator = Utils.getPulseAnimator(labelToAnimate, 0.85f, 1.1f);
+            if (delayLabelAnimate) {
+                pulseAnimator.setStartDelay(PULSE_ANIMATOR_DELAY);
+            }
+            pulseAnimator.start();
         }
-        pulseAnimator.start();
     }
 
     /**

@@ -1,7 +1,12 @@
 package com.fourmob.datetimepicker;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.res.ColorStateList;
+import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.os.Build;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.accessibility.AccessibilityManager;
 
@@ -15,6 +20,7 @@ import java.util.Calendar;
 public class Utils {
 
     public static final int PULSE_ANIMATOR_DURATION = 544;
+    public static final int MONTHS_IN_YEAR = 12;
 
 	public static int getDaysInMonth(int month, int year) {
         switch (month) {
@@ -37,6 +43,10 @@ public class Utils {
                 throw new IllegalArgumentException("Invalid Month");
         }
 	}
+
+    public static int getMonthsBetweenDates(int startMonth, int startYear, int endMonth, int endYear) {
+        return (endYear - startYear) * MONTHS_IN_YEAR + endMonth - startMonth + 1;
+    }
 
 	public static ObjectAnimator getPulseAnimator(View labelToAnimate, float decreaseRatio, float increaseRatio) {
         Keyframe k0 = Keyframe.ofFloat(0f, 1f);
@@ -73,5 +83,41 @@ public class Utils {
         } else {
             return false;
         }
+    }
+
+    public static int getColorAttribute(Context context, int attribute) {
+        TypedValue typedValue = new TypedValue();
+
+        TypedArray a = null;
+        try {
+            a = context.obtainStyledAttributes(typedValue.data, new int[]{attribute});
+            return a.getColor(0, Color.BLACK);
+        } finally {
+            if (a != null) {
+                a.recycle();
+            }
+        }
+    }
+
+    public static int getPrimaryColor(Context context) {
+        return getColorAttribute(context, R.attr.colorPrimary);
+    }
+
+    public static int getPrimaryDarkColor(Context context) {
+        return getColorAttribute(context, R.attr.colorPrimaryDark);
+    }
+
+    public static ColorStateList createThemedTextColorStateList(Context context) {
+        int[][] states = new int[][]{
+                new int[]{android.R.attr.state_enabled}, // enabled
+                new int[]{-android.R.attr.state_enabled}, // disabled
+        };
+
+        int[] colors = new int[]{
+                Utils.getPrimaryColor(context),
+                context.getResources().getColor(R.color.done_text_color_disabled)
+        };
+
+        return new ColorStateList(states, colors);
     }
 }

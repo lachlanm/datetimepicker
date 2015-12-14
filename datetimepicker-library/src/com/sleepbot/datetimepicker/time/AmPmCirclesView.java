@@ -25,6 +25,7 @@ import android.util.Log;
 import android.view.View;
 
 import com.fourmob.datetimepicker.R;
+import com.fourmob.datetimepicker.Utils;
 
 import java.text.DateFormatSymbols;
 
@@ -42,7 +43,7 @@ public class AmPmCirclesView extends View {
     private final Paint mPaint = new Paint();
     private int mWhite;
     private int mAmPmTextColor;
-    private int mBlue;
+    private int mPrimary;
     private float mCircleRadiusMultiplier;
     private float mAmPmCircleRadiusMultiplier;
     private String mAmText;
@@ -74,7 +75,7 @@ public class AmPmCirclesView extends View {
         Resources res = context.getResources();
         mWhite = res.getColor(R.color.white);
         mAmPmTextColor = res.getColor(R.color.ampm_text_color);
-        mBlue = res.getColor(R.color.datepicker_primary);
+        mPrimary = Utils.getPrimaryColor(context);
         String typefaceFamily = res.getString(R.string.sans_serif);
         Typeface tf = Typeface.create(typefaceFamily, Typeface.NORMAL);
         mPaint.setTypeface(tf);
@@ -162,17 +163,17 @@ public class AmPmCirclesView extends View {
         int pmColor = mWhite;
         int pmAlpha = 255;
         if (mAmOrPm == AM) {
-            amColor = mBlue;
+            amColor = mPrimary;
             amAlpha = SELECTED_ALPHA;
         } else if (mAmOrPm == PM) {
-            pmColor = mBlue;
+            pmColor = mPrimary;
             pmAlpha = SELECTED_ALPHA;
         }
         if (mAmOrPmPressed == AM) {
-            amColor = mBlue;
+            amColor = mPrimary;
             amAlpha = PRESSED_ALPHA;
         } else if (mAmOrPmPressed == PM) {
-            pmColor = mBlue;
+            pmColor = mPrimary;
             pmAlpha = PRESSED_ALPHA;
         }
 
