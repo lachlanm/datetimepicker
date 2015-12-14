@@ -24,17 +24,6 @@ public class DayPickerView extends ViewPager implements DatePickerDialog.OnDateC
         setPageMargin(context.getResources().getDimensionPixelSize(R.dimen.day_picker_pager_margin));
     }
 
-    public boolean goTo(CalendarDay day, boolean setSelected) {
-        if (setSelected) {
-            mSelectedDay.set(day);
-        }
-
-        int position = (day.year - mController.getMinYear()) * 12 + day.month - mController.getFirstMonth();
-        setCurrentItem(position);
-
-        return false;
-    }
-
     public void init() {
         setupAdapter(null);
         setAdapter(mPagerAdapter);
@@ -46,7 +35,13 @@ public class DayPickerView extends ViewPager implements DatePickerDialog.OnDateC
     }
 
     public void onDateChanged() {
-        goTo(mController.getSelectedDay(), true);
+        if (!mController.getSelectedDay().equals(mSelectedDay)) {
+            mSelectedDay.set(mController.getSelectedDay());
+            mPagerAdapter.setSelectedDay(mSelectedDay);
+        }
+
+        int position = (mSelectedDay.year - mController.getMinYear()) * 12 + mSelectedDay.month - mController.getFirstMonth();
+        setCurrentItem(position);
     }
 
     public void setMinDate(CalendarDay day){

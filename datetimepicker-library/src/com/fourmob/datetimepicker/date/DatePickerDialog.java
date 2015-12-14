@@ -86,14 +86,6 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
     private boolean viewInitialized = false;
     private CalendarDay maxDate;
 
-    private void adjustDayInMonthIfNeeded(int month, int year) {
-        int day = mCalendar.get(Calendar.DAY_OF_MONTH);
-        int daysInMonth = Utils.getDaysInMonth(month, year);
-        if (day > daysInMonth) {
-            mCalendar.set(Calendar.DAY_OF_MONTH, daysInMonth);
-        }
-    }
-
     public DatePickerDialog() {
         // Empty constructor required for dialog fragment. DO NOT REMOVE
     }
@@ -438,9 +430,43 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
     }
 
     public void onYearSelected(int year) {
-        adjustDayInMonthIfNeeded(mCalendar.get(Calendar.MONTH), year);
+        // Ensure the day doesn't exceed the month.
+        int day = mCalendar.get(Calendar.DAY_OF_MONTH);
+        int month = mCalendar.get(Calendar.MONTH);
+
+        int daysInMonth = Utils.getDaysInMonth(month, year);
+        if (day > daysInMonth) {
+            day = daysInMonth;
+        }
+
+        // Check min and max ranges.
+        if (minDate != null) {
+            if (year == minDate.year) {
+                if (month < minDate.month) {
+                    month = minDate.month;
+                }
+                if (month == minDate.month && day < minDate.day) {
+                    day = minDate.day;
+                }
+            }
+        }
+        if (maxDate != null) {
+            if (year == maxDate.year) {
+                if (month > maxDate.month) {
+                    month = maxDate.month;
+                }
+                if (month == maxDate.month && day > maxDate.day) {
+                    day = maxDate.day;
+                }
+            }
+        }
+
+        // We assume the year is correct since it comes from the year picker.
+        mCalendar.set(Calendar.DAY_OF_MONTH, day);
+        mCalendar.set(Calendar.MONTH, month);
         mCalendar.set(Calendar.YEAR, year);
-        updatePickers();
+
+        //updatePickers();
         setCurrentView(MONTH_AND_DAY_VIEW);
         updateDisplay(true);
     }

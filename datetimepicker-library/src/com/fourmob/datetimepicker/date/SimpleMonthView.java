@@ -363,6 +363,7 @@ public class SimpleMonthView extends View {
             }
         }
 
+        mHoveredDay = -1;
         mSelectedDay = -1;
         if (params.containsKey(VIEW_PARAMS_SELECTED_DAY)) {
             mSelectedDay = params.get(VIEW_PARAMS_SELECTED_DAY);

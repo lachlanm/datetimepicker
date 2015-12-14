@@ -29,7 +29,7 @@ public class SimpleMonthPagerAdapter extends PagerAdapter implements SimpleMonth
 
         mController = datePickerController;
         init();
-        setSelectedDay(mController.getSelectedDay());
+        setSelectedDayInternal(mController.getSelectedDay());
     }
 
     private boolean isSelectedDayInMonth(int year, int month) {
@@ -71,23 +71,7 @@ public class SimpleMonthPagerAdapter extends PagerAdapter implements SimpleMonth
 
         monthView.reuse();
 
-        HashMap<String, Integer> drawingParams = new HashMap<String, Integer>();
-        drawingParams.put(SimpleMonthView.VIEW_PARAMS_SELECTED_DAY, selectedDay);
-        drawingParams.put(SimpleMonthView.VIEW_PARAMS_YEAR, year);
-        drawingParams.put(SimpleMonthView.VIEW_PARAMS_MONTH, month);
-        drawingParams.put(SimpleMonthView.VIEW_PARAMS_WEEK_START, mController.getFirstDayOfWeek());
-        if (mMinDate != null) {
-            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MIN_DATE_DAY, mMinDate.day);
-            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MIN_DATE_MONTH, mMinDate.month);
-            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MIN_DATE_YEAR, mMinDate.year);
-        }
-        if (mMaxDate != null) {
-            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MAX_DATE_DAY, mMaxDate.day);
-            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MAX_DATE_MONTH, mMaxDate.month);
-            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MAX_DATE_YEAR, mMaxDate.year);
-        }
-        monthView.setMonthParams(drawingParams);
-        monthView.invalidate();
+        updateParams(monthView, selectedDay, month, year);
 
         container.addView(monthView);
 
@@ -103,6 +87,27 @@ public class SimpleMonthPagerAdapter extends PagerAdapter implements SimpleMonth
 
         mCurrentViews.remove(createViewKey(recycledView.getMonth(), recycledView.getYear()));
         mRecycledViewsList.push(recycledView);
+    }
+
+    private void updateParams(SimpleMonthView monthView, int selectedDay, int month, int year) {
+        HashMap<String, Integer> drawingParams = new HashMap<String, Integer>();
+        drawingParams.put(SimpleMonthView.VIEW_PARAMS_SELECTED_DAY, selectedDay);
+        drawingParams.put(SimpleMonthView.VIEW_PARAMS_YEAR, year);
+        drawingParams.put(SimpleMonthView.VIEW_PARAMS_MONTH, month);
+        drawingParams.put(SimpleMonthView.VIEW_PARAMS_WEEK_START, mController.getFirstDayOfWeek());
+        if (mMinDate != null) {
+            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MIN_DATE_DAY, mMinDate.day);
+            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MIN_DATE_MONTH, mMinDate.month);
+            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MIN_DATE_YEAR, mMinDate.year);
+        }
+        if (mMaxDate != null) {
+            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MAX_DATE_DAY, mMaxDate.day);
+            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MAX_DATE_MONTH, mMaxDate.month);
+            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MAX_DATE_YEAR, mMaxDate.year);
+        }
+
+        monthView.setMonthParams(drawingParams);
+        monthView.invalidate();
     }
 
     private String createViewKey(int month, int year) {
@@ -133,10 +138,10 @@ public class SimpleMonthPagerAdapter extends PagerAdapter implements SimpleMonth
     protected void onDayTapped(CalendarDay calendarDay) {
         mController.tryVibrate();
         mController.onDayOfMonthSelected(calendarDay.year, calendarDay.month, calendarDay.day);
-        setSelectedDay(calendarDay);
+        setSelectedDayInternal(calendarDay);
     }
 
-    public void setSelectedDay(CalendarDay calendarDay) {
+    private void setSelectedDayInternal(CalendarDay calendarDay) {
         mSelectedDay = calendarDay;
 
         // Invalidate all the other month views.
@@ -144,6 +149,15 @@ public class SimpleMonthPagerAdapter extends PagerAdapter implements SimpleMonth
             if (!key.equals(createViewKey(calendarDay.month, calendarDay.year))) {
                 mCurrentViews.get(key).clearSelection();
             }
+        }
+    }
+
+    public void setSelectedDay(CalendarDay calendarDay) {
+        setSelectedDayInternal(calendarDay);
+
+        SimpleMonthView monthView = mCurrentViews.get(createViewKey(calendarDay.month, calendarDay.year));
+        if (monthView != null) {
+            updateParams(monthView, calendarDay.day, calendarDay.month, calendarDay.year);
         }
     }
 
