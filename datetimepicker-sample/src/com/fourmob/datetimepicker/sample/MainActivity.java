@@ -1,7 +1,7 @@
 package com.fourmob.datetimepicker.sample;
 
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.CheckBox;
@@ -14,7 +14,7 @@ import com.sleepbot.datetimepicker.time.TimePickerDialog;
 
 import java.util.Calendar;
 
-public class MainActivity extends FragmentActivity implements OnDateSetListener, TimePickerDialog.OnTimeSetListener {
+public class MainActivity extends AppCompatActivity implements OnDateSetListener, TimePickerDialog.OnTimeSetListener {
 
     public static final String DATEPICKER_TAG = "datepicker";
     public static final String TIMEPICKER_TAG = "timepicker";
@@ -26,13 +26,11 @@ public class MainActivity extends FragmentActivity implements OnDateSetListener,
 
         final Calendar calendar = Calendar.getInstance();
 
-        final DatePickerDialog datePickerDialog = DatePickerDialog.newInstance(this, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH), isVibrate());
-        final TimePickerDialog timePickerDialog = TimePickerDialog.newInstance(this, calendar.get(Calendar.HOUR_OF_DAY) ,calendar.get(Calendar.MINUTE), false, false);
-
         findViewById(R.id.dateButton).setOnClickListener(new OnClickListener() {
 
             @Override
             public void onClick(View v) {
+                DatePickerDialog datePickerDialog = DatePickerDialog.newInstance(MainActivity.this, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH), isVibrate());
                 datePickerDialog.setVibrate(isVibrate());
                 datePickerDialog.setYearRange(1985, 2028);
                 datePickerDialog.setCloseOnSingleTapDay(isCloseOnSingleTapDay());
@@ -43,6 +41,7 @@ public class MainActivity extends FragmentActivity implements OnDateSetListener,
         findViewById(R.id.timeButton).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
+                TimePickerDialog timePickerDialog = TimePickerDialog.newInstance(MainActivity.this, calendar.get(Calendar.HOUR_OF_DAY) ,calendar.get(Calendar.MINUTE), false, false);
                 timePickerDialog.setVibrate(isVibrate());
                 timePickerDialog.setCloseOnSingleTapMinute(isCloseOnSingleTapMinute());
                 timePickerDialog.show(getSupportFragmentManager(), TIMEPICKER_TAG);
