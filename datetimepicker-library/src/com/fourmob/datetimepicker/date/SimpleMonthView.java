@@ -166,24 +166,23 @@ public class SimpleMonthView extends View {
 		int paddingDay = (mWidth - 2 * mPadding) / (2 * mNumDays);
 		int dayOffset = findDayOffset();
 		int day = 1;
-        boolean hasDisabledDays = false;
-        if (mMinDate != null && mMonth <= mMinDate.month && mYear <= mMinDate.year) {
-            hasDisabledDays = true;
+
+        int minEnabledDay = day;
+        int maxEnabledDay = mNumCells;
+        if (mMinDate != null && mMonth == mMinDate.month && mYear == mMinDate.year) {
+            minEnabledDay = mMinDate.day;
         }
-        if (mMaxDate != null && mMonth >= mMaxDate.month && mYear >= mMaxDate.year) {
-            hasDisabledDays = true;
+        if (mMaxDate != null && mMonth == mMaxDate.month && mYear == mMaxDate.year) {
+            maxEnabledDay = mMaxDate.day;
         }
 
         while (day <= mNumCells) {
-            boolean isDisabledDay = false;
 			int x = paddingDay * (1 + dayOffset * 2) + mPadding;
 
-            if (hasDisabledDays) {
-                isDisabledDay = isDisabledDay(day);
-            }
-
             int textColor = mDayTextColor;
-            if (!isDisabledDay) {
+
+            // Check if the day is 'enabled'
+            if (day >= minEnabledDay && day <= maxEnabledDay) {
                 if (mHasToday && (mToday == day)) {
                     textColor = mTodayNumberColor;
                 }
@@ -287,8 +286,17 @@ public class SimpleMonthView extends View {
     }
 
     private boolean isDisabledDay(int day) {
-        return (mMinDate != null && mMinDate.isAfter(new CalendarDay(mYear, mMonth, day))) ||
-                (mMaxDate != null && mMaxDate.isBefore(new CalendarDay(mYear, mMonth, day)));
+        if (mMinDate != null && mMonth == mMinDate.month && mYear == mMinDate.year) {
+            if (day < mMinDate.day) {
+                return true;
+            }
+        }
+        if (mMaxDate != null && mMonth == mMaxDate.month && mYear == mMaxDate.year) {
+            if (day > mMaxDate.day) {
+                return true;
+            }
+        }
+        return false;
     }
 
 	public boolean onTouchEvent(MotionEvent event) {

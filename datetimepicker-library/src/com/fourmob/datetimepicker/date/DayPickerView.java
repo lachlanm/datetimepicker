@@ -3,6 +3,7 @@ package com.fourmob.datetimepicker.date;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.NonNull;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
@@ -42,7 +43,7 @@ public class DayPickerView extends FrameLayout implements SimpleMonthPagerAdapte
             public void onClick(View v) {
                 int currentItem = mViewPager.getCurrentItem();
                 if (currentItem > 0) {
-                    mViewPager.setCurrentItem(currentItem - 1, true);
+                    mViewPager.setCurrentItem(currentItem - 1, false);
                 }
             }
         });
@@ -52,7 +53,7 @@ public class DayPickerView extends FrameLayout implements SimpleMonthPagerAdapte
             public void onClick(View v) {
                 int currentItem = mViewPager.getCurrentItem();
                 if (currentItem < mPagerAdapter.getCount()) {
-                    mViewPager.setCurrentItem(currentItem + 1, true);
+                    mViewPager.setCurrentItem(currentItem + 1, false);
                 }
             }
         });
@@ -143,11 +144,14 @@ public class DayPickerView extends FrameLayout implements SimpleMonthPagerAdapte
     public static class DayPickerParams {
         public final int firstDayOfWeek;
 
+        @NonNull
         public final CalendarDay selectedDate;
+        @NonNull
         public final CalendarDay minDate;
+        @NonNull
         public final CalendarDay maxDate;
 
-        public DayPickerParams(CalendarDay minDate, CalendarDay maxDate, CalendarDay selectedDate, int firstDayOfWeek) {
+        public DayPickerParams(@NonNull CalendarDay minDate, @NonNull CalendarDay maxDate, @NonNull CalendarDay selectedDate, int firstDayOfWeek) {
             this.selectedDate = selectedDate;
             this.firstDayOfWeek = firstDayOfWeek;
             this.minDate = minDate;

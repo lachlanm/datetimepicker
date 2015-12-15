@@ -107,18 +107,14 @@ public class SimpleMonthPagerAdapter extends PagerAdapter implements SimpleMonth
         drawingParams.put(SimpleMonthView.VIEW_PARAMS_WEEK_START, mParams.firstDayOfWeek);
 
         CalendarDay minDate = mParams.minDate;
-        if (minDate != null) {
-            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MIN_DATE_DAY, minDate.day);
-            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MIN_DATE_MONTH, minDate.month);
-            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MIN_DATE_YEAR, minDate.year);
-        }
+        drawingParams.put(SimpleMonthView.VIEW_PARAMS_MIN_DATE_DAY, minDate.day);
+        drawingParams.put(SimpleMonthView.VIEW_PARAMS_MIN_DATE_MONTH, minDate.month);
+        drawingParams.put(SimpleMonthView.VIEW_PARAMS_MIN_DATE_YEAR, minDate.year);
 
         CalendarDay maxDate = mParams.maxDate;
-        if (maxDate != null) {
-            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MAX_DATE_DAY, maxDate.day);
-            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MAX_DATE_MONTH, maxDate.month);
-            drawingParams.put(SimpleMonthView.VIEW_PARAMS_MAX_DATE_YEAR, maxDate.year);
-        }
+        drawingParams.put(SimpleMonthView.VIEW_PARAMS_MAX_DATE_DAY, maxDate.day);
+        drawingParams.put(SimpleMonthView.VIEW_PARAMS_MAX_DATE_MONTH, maxDate.month);
+        drawingParams.put(SimpleMonthView.VIEW_PARAMS_MAX_DATE_YEAR, maxDate.year);
 
         monthView.setMonthParams(drawingParams);
         monthView.invalidate();
@@ -140,8 +136,8 @@ public class SimpleMonthPagerAdapter extends PagerAdapter implements SimpleMonth
             CalendarDay minDate = mParams.minDate;
             CalendarDay maxDate = mParams.maxDate;
 
-            if ((minDate == null || calendarDay.isAfter(minDate) || calendarDay.equals(minDate)) &&
-                    (maxDate == null || calendarDay.isBefore(maxDate) || calendarDay.equals(maxDate))) {
+            if ((calendarDay.isAfter(minDate) || calendarDay.equals(minDate)) &&
+                    (calendarDay.isBefore(maxDate) || calendarDay.equals(maxDate))) {
                 onDayTapped(calendarDay);
             } else {
                 Log.i(TAG, "ignoring push since day is after minDate or before maxDate");
@@ -164,15 +160,6 @@ public class SimpleMonthPagerAdapter extends PagerAdapter implements SimpleMonth
             if (!key.equals(createViewKey(calendarDay.month, calendarDay.year))) {
                 mCurrentViews.get(key).clearSelection();
             }
-        }
-    }
-
-    public void setSelectedDay(CalendarDay calendarDay) {
-        setSelectedDayInternal(calendarDay);
-
-        SimpleMonthView monthView = mCurrentViews.get(createViewKey(calendarDay.month, calendarDay.year));
-        if (monthView != null) {
-            updateMonthViewParams(monthView, calendarDay.day, calendarDay.month, calendarDay.year);
         }
     }
 

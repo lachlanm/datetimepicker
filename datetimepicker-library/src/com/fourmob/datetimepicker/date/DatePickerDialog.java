@@ -334,35 +334,35 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
     }
 
     /**
-     * @deprecated Use {@link #setDateConstaints} instead.
+     * @deprecated Use {@link #setDateConstraints} instead.
      * <p>
      * Set the minimum allowed date
      * Note : the month index starts from 0, rest all from 1
      * </p>
      */
     public void setMinDate(CalendarDay minDate) {
-        setDateConstaints(minDate, this.mMaxDate);
+        setDateConstraints(minDate, this.mMaxDate);
     }
 
     /**
-     * @deprecated Use {@link #setDateConstaints} instead.
+     * @deprecated Use {@link #setDateConstraints} instead.
      * <p>
      * Set the maximum allowed date
      * Note : the month index starts from 0, rest all from 1
      * </p>
      */
     public void setMaxDate(CalendarDay maxDate) {
-        setDateConstaints(this.mMinDate, maxDate);
+        setDateConstraints(this.mMinDate, maxDate);
     }
 
     /**
      * @deprecated Use setMinDate and setMaxDate instead.
      */
     public void setYearRange(int minYear, int maxYear) {
-        setDateConstaints(new CalendarDay(minYear, mMinDate.month, mMinDate.day), new CalendarDay(maxYear, mMaxDate.month, mMaxDate.day));
+        setDateConstraints(new CalendarDay(minYear, mMinDate.month, mMinDate.day), new CalendarDay(maxYear, mMaxDate.month, mMaxDate.day));
     }
 
-    public void setDateConstaints(CalendarDay minDate, CalendarDay maxDate) {
+    public void setDateConstraints(CalendarDay minDate, CalendarDay maxDate) {
         if (minDate.isAfter(maxDate))
             throw new IllegalArgumentException("Max date must be larger than min date");
 

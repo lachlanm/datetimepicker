@@ -15,7 +15,7 @@
             android:id="@+id/checkBoxVibrate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="30dp"
+            android:layout_marginBottom="@dimen/setting_padding_y"
             android:checked="true"
             android:text="vibrate" />
 
@@ -23,22 +23,30 @@
             android:id="@+id/checkBoxCloseOnSingleTapDay"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="30dp"
+            android:layout_marginBottom="@dimen/setting_padding_y"
             android:checked="true"
             android:text="close on single tap day" />
+
+        <CheckBox
+            android:id="@+id/checkBoxUseConstraints"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/setting_padding_y"
+            android:checked="true"
+            android:text="use constraints" />
 
         <Button
             android:id="@+id/dateButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="30dp"
+            android:layout_marginBottom="@dimen/setting_padding_y"
             android:text="Select Date" />
 
         <CheckBox
             android:id="@+id/checkBoxCloseOnSingleTapMinute"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="30dp"
+            android:layout_marginBottom="@dimen/setting_padding_y"
             android:checked="true"
             android:text="close on single tap minute" />
 
@@ -46,7 +54,7 @@
             android:id="@+id/checkBoxIs24HourMode"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="30dp"
+            android:layout_marginBottom="@dimen/setting_padding_y"
             android:checked="false"
             android:text="is 24 hour mode" />
 
