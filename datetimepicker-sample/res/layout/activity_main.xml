@@ -1,46 +1,60 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
-    tools:context=".MainActivity" >
+    android:fillViewport="true">
 
-    <CheckBox
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="vibrate"
-        android:layout_marginBottom="30dp"
-        android:id="@+id/checkBoxVibrate"
-        android:checked="true"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        tools:context=".MainActivity">
 
-    <CheckBox
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="close on single tap day"
-        android:layout_marginBottom="30dp"
-        android:id="@+id/checkBoxCloseOnSingleTapDay"
-        android:checked="true"/>
+        <CheckBox
+            android:id="@+id/checkBoxVibrate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="30dp"
+            android:checked="true"
+            android:text="vibrate" />
 
-    <Button
-        android:id="@+id/dateButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="30dp"
-        android:text="Select Date" />
+        <CheckBox
+            android:id="@+id/checkBoxCloseOnSingleTapDay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="30dp"
+            android:checked="true"
+            android:text="close on single tap day" />
 
-    <CheckBox
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="close on single tap minute"
-        android:layout_marginBottom="30dp"
-        android:id="@+id/checkBoxCloseOnSingleTapMinute"
-        android:checked="true"/>
+        <Button
+            android:id="@+id/dateButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="30dp"
+            android:text="Select Date" />
 
-    <Button
-        android:id="@+id/timeButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Select Time" />
+        <CheckBox
+            android:id="@+id/checkBoxCloseOnSingleTapMinute"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="30dp"
+            android:checked="true"
+            android:text="close on single tap minute" />
 
-</LinearLayout>
+        <CheckBox
+            android:id="@+id/checkBoxIs24HourMode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="30dp"
+            android:checked="false"
+            android:text="is 24 hour mode" />
+
+        <Button
+            android:id="@+id/timeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Time" />
+
+    </LinearLayout>
+</ScrollView>

@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements OnDateSetListener
         findViewById(R.id.timeButton).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                TimePickerDialog timePickerDialog = TimePickerDialog.newInstance(MainActivity.this, calendar.get(Calendar.HOUR_OF_DAY) ,calendar.get(Calendar.MINUTE), false, false);
+                TimePickerDialog timePickerDialog = TimePickerDialog.newInstance(MainActivity.this, calendar.get(Calendar.HOUR_OF_DAY) ,calendar.get(Calendar.MINUTE), is24HourMode(), false);
                 timePickerDialog.setVibrate(isVibrate());
                 timePickerDialog.setCloseOnSingleTapMinute(isCloseOnSingleTapMinute());
                 timePickerDialog.show(getSupportFragmentManager(), TIMEPICKER_TAG);
@@ -71,6 +71,10 @@ public class MainActivity extends AppCompatActivity implements OnDateSetListener
 
     private boolean isCloseOnSingleTapMinute() {
         return ((CheckBox) findViewById(R.id.checkBoxCloseOnSingleTapMinute)).isChecked();
+    }
+
+    private boolean is24HourMode() {
+        return ((CheckBox) findViewById(R.id.checkBoxIs24HourMode)).isChecked();
     }
 
     @Override
