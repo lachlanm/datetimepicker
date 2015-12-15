@@ -18,6 +18,7 @@ package com.sleepbot.datetimepicker.time;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.Log;
 import android.view.View;
@@ -64,6 +65,9 @@ public class RadialSelectorView extends View {
     private double mSelectionRadians;
     private boolean mForceDrawDot;
 
+    private int mSelectorColor;
+    private int mDotColor;
+
     public RadialSelectorView(Context context) {
         super(context);
         mIsInitialized = false;
@@ -92,7 +96,9 @@ public class RadialSelectorView extends View {
 
         Resources res = context.getResources();
 
-        mPaint.setColor(Utils.getPrimaryColor(context));
+        mSelectorColor = Utils.getPrimaryColor(context);
+        mDotColor = Color.WHITE;
+
         mPaint.setAntiAlias(true);
 
         // Calculate values for the circle radius size.
@@ -127,7 +133,7 @@ public class RadialSelectorView extends View {
         mTransitionEndRadiusMultiplier = 1f + (0.3f * (disappearsOut ? 1 : -1));
         mInvalidateUpdateListener = new InvalidateUpdateListener();
 
-        setSelection(selectionDegrees, isInnerCircle, false);
+        setSelection(selectionDegrees, isInnerCircle);
         mIsInitialized = true;
     }
 
@@ -137,14 +143,10 @@ public class RadialSelectorView extends View {
      * @param selectionDegrees The degrees to be selected.
      * @param isInnerCircle    Whether the selection should be in the inner circle or outer. Will be
      *                         ignored if hasInnerCircle was initialized to false.
-     * @param forceDrawDot     Whether to force the dot in the center of the selection circle to be
-     *                         drawn. If false, the dot will be drawn only when the degrees is not a multiple of 30, i.e.
-     *                         the selection is not on a visible number.
      */
-    public void setSelection(int selectionDegrees, boolean isInnerCircle, boolean forceDrawDot) {
+    public void setSelection(int selectionDegrees, boolean isInnerCircle) {
         mSelectionDegrees = selectionDegrees;
         mSelectionRadians = selectionDegrees * Math.PI / 180;
-        mForceDrawDot = forceDrawDot;
 
         if (mHasInnerCircle) {
             if (isInnerCircle) {
@@ -277,16 +279,19 @@ public class RadialSelectorView extends View {
         int pointY = mYCenter - (int) (mLineLength * Math.cos(mSelectionRadians));
 
         // Draw the selection circle.
+        mPaint.setColor(mSelectorColor);
         canvas.drawCircle(pointX, pointY, mSelectionRadius, mPaint);
-
-        if (mForceDrawDot | mSelectionDegrees % 30 != 0) {
-            // We're not on a direct tick (or we've been told to draw the dot anyway).
-            canvas.drawCircle(pointX, pointY, (mSelectionRadius * 2 / 7), mPaint);
-        }
 
         // Draw the line from the center of the circle.
         mPaint.setStrokeWidth(3);
         canvas.drawLine(mXCenter, mYCenter, pointX, pointY, mPaint);
+        mPaint.setStrokeWidth(1);
+
+        if (mSelectionDegrees % 30 != 0) {
+            // We're not on a direct tick (or we've been told to draw the dot anyway).
+            mPaint.setColor(mDotColor);
+            canvas.drawCircle(pointX, pointY, (mSelectionRadius / 7), mPaint);
+        }
     }
 
     public ObjectAnimator getDisappearAnimator() {

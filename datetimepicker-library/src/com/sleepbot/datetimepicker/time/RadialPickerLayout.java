@@ -203,19 +203,23 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
             innerHoursTexts[i] = String.format("%d", hours[i]);
             minutesTexts[i] = String.format("%02d", minutes[i]);
         }
+
+        int hourDegrees = (initialHoursOfDay % 12) * HOUR_VALUE_TO_DEGREES_STEP_SIZE;
+        int minuteDegrees = initialMinutes * MINUTE_VALUE_TO_DEGREES_STEP_SIZE;
+
+        boolean isHourInnerCircle = isHourInnerCircle(initialHoursOfDay);
+
         mHourRadialTextsView.initialize(res,
-                hoursTexts, (is24HourMode ? innerHoursTexts : null), mHideAmPm, true);
+                hoursTexts, (is24HourMode ? innerHoursTexts : null), mHideAmPm, true, hourDegrees, isHourInnerCircle);
         mHourRadialTextsView.invalidate();
-        mMinuteRadialTextsView.initialize(res, minutesTexts, null, mHideAmPm, false);
+        mMinuteRadialTextsView.initialize(res, minutesTexts, null, mHideAmPm, false, minuteDegrees, false);
         mMinuteRadialTextsView.invalidate();
 
         // Initialize the currently-selected hour and minute.
         setValueForItem(HOUR_INDEX, initialHoursOfDay);
         setValueForItem(MINUTE_INDEX, initialMinutes);
-        int hourDegrees = (initialHoursOfDay % 12) * HOUR_VALUE_TO_DEGREES_STEP_SIZE;
         mHourRadialSelectorView.initialize(context, mHideAmPm, is24HourMode, true,
-                hourDegrees, isHourInnerCircle(initialHoursOfDay));
-        int minuteDegrees = initialMinutes * MINUTE_VALUE_TO_DEGREES_STEP_SIZE;
+                hourDegrees, isHourInnerCircle);
         mMinuteRadialSelectorView.initialize(context, mHideAmPm, false, false,
                 minuteDegrees, false);
 
@@ -238,13 +242,20 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
         if (index == HOUR_INDEX) {
             setValueForItem(HOUR_INDEX, value);
             int hourDegrees = (value % 12) * HOUR_VALUE_TO_DEGREES_STEP_SIZE;
-            mHourRadialSelectorView.setSelection(hourDegrees, isHourInnerCircle(value), false);
+            mHourRadialSelectorView.setSelection(hourDegrees, isHourInnerCircle(value));
             mHourRadialSelectorView.invalidate();
+
+            mHourRadialTextsView.setSelection(hourDegrees, isHourInnerCircle(value));
+            mHourRadialTextsView.invalidate();
+
         } else if (index == MINUTE_INDEX) {
             setValueForItem(MINUTE_INDEX, value);
             int minuteDegrees = value * MINUTE_VALUE_TO_DEGREES_STEP_SIZE;
-            mMinuteRadialSelectorView.setSelection(minuteDegrees, false, false);
+            mMinuteRadialSelectorView.setSelection(minuteDegrees, false);
             mMinuteRadialSelectorView.invalidate();
+
+            mMinuteRadialTextsView.setSelection(minuteDegrees, isHourInnerCircle(value));
+            mMinuteRadialTextsView.invalidate();
         }
     }
 
@@ -429,12 +440,10 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
      *                            if there is no inner circle.
      * @param forceToVisibleValue Even if the currently-showing circle allows for fine-grained
      *                            selection (i.e. minutes), force the selection to one of the visibly-showing values.
-     * @param forceDrawDot        The dot in the circle will generally only be shown when the selection
-     *                            is on non-visible values, but use this to force the dot to be shown.
      * @return The value that was selected, i.e. 0-23 for hours, 0-59 for minutes.
      */
     private int reselectSelector(int degrees, boolean isInnerCircle,
-                                 boolean forceToVisibleValue, boolean forceDrawDot) {
+                                 boolean forceToVisibleValue) {
         if (degrees == -1) {
             return -1;
         }
@@ -449,16 +458,21 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
         }
 
         RadialSelectorView radialSelectorView;
+        RadialTextsView radialTextsView;
         if (currentShowing == HOUR_INDEX) {
             radialSelectorView = mHourRadialSelectorView;
+            radialTextsView = mHourRadialTextsView;
             stepSize = HOUR_VALUE_TO_DEGREES_STEP_SIZE;
         } else {
             radialSelectorView = mMinuteRadialSelectorView;
+            radialTextsView = mMinuteRadialTextsView;
             stepSize = MINUTE_VALUE_TO_DEGREES_STEP_SIZE;
         }
-        radialSelectorView.setSelection(degrees, isInnerCircle, forceDrawDot);
+        radialSelectorView.setSelection(degrees, isInnerCircle);
         radialSelectorView.invalidate();
 
+        radialTextsView.setSelection(degrees, isInnerCircle);
+        radialTextsView.invalidate();
 
         if (currentShowing == HOUR_INDEX) {
             if (mIs24HourMode) {
@@ -633,7 +647,7 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
                             public void run() {
                                 mDoingMove = true;
                                 int value = reselectSelector(mDownDegrees, isInnerCircle[0],
-                                        false, true);
+                                        false);
                                 mLastValueSelected = value;
                                 mListener.onValueSelected(getCurrentItemShowing(), value, false, false);
                             }
@@ -680,7 +694,7 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
                 mHandler.removeCallbacksAndMessages(null);
                 degrees = getDegreesFromCoords(eventX, eventY, true, isInnerCircle);
                 if (degrees != -1) {
-                    value = reselectSelector(degrees, isInnerCircle[0], false, true);
+                    value = reselectSelector(degrees, isInnerCircle[0], false);
                     if (value != mLastValueSelected) {
                         tryVibrate();
                         mLastValueSelected = value;
@@ -720,7 +734,7 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
                 if (mDownDegrees != -1) {
                     degrees = getDegreesFromCoords(eventX, eventY, mDoingMove, isInnerCircle);
                     if (degrees != -1) {
-                        value = reselectSelector(degrees, isInnerCircle[0], !mDoingMove, false);
+                        value = reselectSelector(degrees, isInnerCircle[0], !mDoingMove);
                         if (getCurrentItemShowing() == HOUR_INDEX && !mIs24HourMode) {
                             int amOrPm = getIsCurrentlyAmOrPm();
                             if (amOrPm == AM && value == 12) {

@@ -18,7 +18,10 @@ package com.sleepbot.datetimepicker.time;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.Region;
 import android.graphics.Typeface;
 import android.graphics.Paint.Align;
 import android.util.Log;
@@ -36,11 +39,15 @@ import com.nineoldandroids.animation.ValueAnimator;
 public class RadialTextsView extends View {
     private final static String TAG = "RadialTextsView";
 
+    private static final int DEGREES_IN_CIRCLE = 360; // each number represents 30 degrees.
+    private static final int DEGREE_POSITION_TICK = DEGREES_IN_CIRCLE / 12; // each number represents 30 degrees.
+
     private final Paint mPaint = new Paint();
 
     private boolean mDrawValuesReady;
     private boolean mIsInitialized;
 
+    private int mNumbersTextColor;
     private Typeface mTypefaceLight;
     private Typeface mTypefaceRegular;
     private String[] mTexts;
@@ -72,21 +79,27 @@ public class RadialTextsView extends View {
     ObjectAnimator mReappearAnimator;
     private InvalidateUpdateListener mInvalidateUpdateListener;
 
+    private float mSelectionRadiusMultiplier;
+    private int mSelectionHourDegrees;
+    private boolean mSelectionInnerCircle;
+    private float mSelectionRadius;
+    private Path mSelectorPath;
+
     public RadialTextsView(Context context) {
         super(context);
         mIsInitialized = false;
     }
 
     public void initialize(Resources res, String[] texts, String[] innerTexts,
-                           boolean is24HourMode, boolean disappearsOut) {
+                           boolean is24HourMode, boolean disappearsOut,
+                           int selectionHourDegrees, boolean selectionInnerCircle) {
         if (mIsInitialized) {
             Log.e(TAG, "This RadialTextsView may only be initialized once.");
             return;
         }
 
         // Set up the paint.
-        int numbersTextColor = res.getColor(R.color.numbers_text_color);
-        mPaint.setColor(numbersTextColor);
+        mNumbersTextColor = res.getColor(R.color.numbers_text_color);
         String typefaceFamily = res.getString(R.string.radial_numbers_typeface);
         mTypefaceLight = Typeface.create(typefaceFamily, Typeface.NORMAL);
         String typefaceFamilyRegular = res.getString(R.string.sans_serif);
@@ -98,6 +111,12 @@ public class RadialTextsView extends View {
         mInnerTexts = innerTexts;
         mIs24HourMode = is24HourMode;
         mHasInnerCircle = (innerTexts != null);
+
+        mSelectionRadiusMultiplier = Float.parseFloat(res.getString(R.string.selection_radius_multiplier));
+
+        mSelectionHourDegrees = selectionHourDegrees;
+        mSelectionInnerCircle = selectionInnerCircle;
+        mSelectorPath = new Path();
 
         // Calculate the radius for the main circle.
         if (is24HourMode) {
@@ -189,10 +208,8 @@ public class RadialTextsView extends View {
         }
 
         // Calculate the text positions, but only if they've changed since the last onDraw.
+        float numbersRadius = mCircleRadius * mNumbersRadiusMultiplier * mAnimationRadiusMultiplier;
         if (mTextGridValuesDirty) {
-            float numbersRadius =
-                    mCircleRadius * mNumbersRadiusMultiplier * mAnimationRadiusMultiplier;
-
             // Calculate the positions for the 12 numbers in the main circle.
             calculateGridSizes(numbersRadius, mXCenter, mYCenter,
                     mTextSize, mTextGridHeights, mTextGridWidths);
@@ -203,14 +220,25 @@ public class RadialTextsView extends View {
                 calculateGridSizes(innerNumbersRadius, mXCenter, mYCenter,
                         mInnerTextSize, mInnerTextGridHeights, mInnerTextGridWidths);
             }
+
+            // The radius of the selector from the radial selector.
+            mSelectionRadius = (int) (mCircleRadius * mSelectionRadiusMultiplier);
+
             mTextGridValuesDirty = false;
         }
 
+        // Create a mask for the radial selector.
+        mSelectorPath.reset();
+        double selectionRadians = mSelectionHourDegrees * Math.PI / 180;
+        float selectorX = mXCenter + (int) (numbersRadius * Math.sin(selectionRadians));
+        float selectorY = mYCenter - (int) (numbersRadius * Math.cos(selectionRadians));
+        mSelectorPath.addCircle(selectorX, selectorY, mSelectionRadius, Path.Direction.CW);
+
         // Draw the texts in the pre-calculated positions.
-        drawTexts(canvas, mTextSize, mTypefaceLight, mTexts, mTextGridWidths, mTextGridHeights);
+        drawTexts(canvas, mTextSize, mTypefaceLight, mTexts, mTextGridWidths, mTextGridHeights, !mSelectionInnerCircle);
         if (mHasInnerCircle) {
             drawTexts(canvas, mInnerTextSize, mTypefaceRegular, mInnerTexts,
-                    mInnerTextGridWidths, mInnerTextGridHeights);
+                    mInnerTextGridWidths, mInnerTextGridHeights, mSelectionInnerCircle);
         }
     }
 
@@ -253,21 +281,75 @@ public class RadialTextsView extends View {
      * Draw the 12 text values at the positions specified by the textGrid parameters.
      */
     private void drawTexts(Canvas canvas, float textSize, Typeface typeface, String[] texts,
-                           float[] textGridWidths, float[] textGridHeights) {
+                           float[] textGridWidths, float[] textGridHeights, boolean useSelectionTextEffect) {
         mPaint.setTextSize(textSize);
         mPaint.setTypeface(typeface);
-        canvas.drawText(texts[0], textGridWidths[3], textGridHeights[0], mPaint);
-        canvas.drawText(texts[1], textGridWidths[4], textGridHeights[1], mPaint);
-        canvas.drawText(texts[2], textGridWidths[5], textGridHeights[2], mPaint);
-        canvas.drawText(texts[3], textGridWidths[6], textGridHeights[3], mPaint);
-        canvas.drawText(texts[4], textGridWidths[5], textGridHeights[4], mPaint);
-        canvas.drawText(texts[5], textGridWidths[4], textGridHeights[5], mPaint);
-        canvas.drawText(texts[6], textGridWidths[3], textGridHeights[6], mPaint);
-        canvas.drawText(texts[7], textGridWidths[2], textGridHeights[5], mPaint);
-        canvas.drawText(texts[8], textGridWidths[1], textGridHeights[4], mPaint);
-        canvas.drawText(texts[9], textGridWidths[0], textGridHeights[3], mPaint);
-        canvas.drawText(texts[10], textGridWidths[1], textGridHeights[2], mPaint);
-        canvas.drawText(texts[11], textGridWidths[2], textGridHeights[1], mPaint);
+
+        drawText(canvas, texts, 0, textGridWidths[3], textGridHeights[0], useSelectionTextEffect);
+        drawText(canvas, texts, 1, textGridWidths[4], textGridHeights[1], useSelectionTextEffect);
+        drawText(canvas, texts, 2, textGridWidths[5], textGridHeights[2], useSelectionTextEffect);
+        drawText(canvas, texts, 3, textGridWidths[6], textGridHeights[3], useSelectionTextEffect);
+        drawText(canvas, texts, 4, textGridWidths[5], textGridHeights[4], useSelectionTextEffect);
+        drawText(canvas, texts, 5, textGridWidths[4], textGridHeights[5], useSelectionTextEffect);
+        drawText(canvas, texts, 6, textGridWidths[3], textGridHeights[6], useSelectionTextEffect);
+        drawText(canvas, texts, 7, textGridWidths[2], textGridHeights[5], useSelectionTextEffect);
+        drawText(canvas, texts, 8, textGridWidths[1], textGridHeights[4], useSelectionTextEffect);
+        drawText(canvas, texts, 9, textGridWidths[0], textGridHeights[3], useSelectionTextEffect);
+        drawText(canvas, texts, 10, textGridWidths[1], textGridHeights[2], useSelectionTextEffect);
+        drawText(canvas, texts, 11, textGridWidths[2], textGridHeights[1], useSelectionTextEffect);
+    }
+
+    /**
+     * Draw the text at the given position on the canvas.
+     *
+     * If the text position intersects with the selector position, the text should be drawn partially white
+     * and partially the standard text colour depending on the amount of overlap.
+     *
+     * This implementation should be changed in future, RadialTextsView and RadialSelectorView should
+     * be merged at some point since there is now a dependency on the selector position and size.
+     */
+    private void drawText(Canvas canvas, String[] texts, int position, float x, float y, boolean useSelectionTextEffect) {
+        boolean useSelectionTextColor = false;
+
+        // If we know the text being drawn may be affected, calculate whether it actually is.
+        if (useSelectionTextEffect) {
+            int positionDegrees = position * DEGREE_POSITION_TICK;
+
+            // Is the selector between this text and the next text.
+            if (positionDegrees < mSelectionHourDegrees + DEGREE_POSITION_TICK) {
+
+                // Is the selector between this text and the previous text.
+                if (positionDegrees > mSelectionHourDegrees - DEGREE_POSITION_TICK) {
+                    useSelectionTextColor = true;
+
+                } else if (positionDegrees == 0 && mSelectionHourDegrees > DEGREES_IN_CIRCLE - DEGREE_POSITION_TICK) {
+                    // Special case for the first text since the previous text would be negative.
+                    useSelectionTextColor = true;
+                }
+            }
+        }
+
+        String text = texts[position];
+        if (!useSelectionTextColor) {
+            // Draw the text as normal.
+            mPaint.setColor(mNumbersTextColor);
+            canvas.drawText(text, x, y, mPaint);
+            return;
+        }
+
+        // Draw the standard text everywhere except within the selector circle.
+        canvas.save(Canvas.CLIP_SAVE_FLAG);
+        canvas.clipPath(mSelectorPath, Region.Op.DIFFERENCE);
+        mPaint.setColor(mNumbersTextColor);
+        canvas.drawText(text, x, y, mPaint);
+        canvas.restore();
+
+        // Draw the white text only within selector circle.
+        canvas.save(Canvas.CLIP_SAVE_FLAG);
+        canvas.clipPath(mSelectorPath);
+        mPaint.setColor(Color.WHITE);
+        canvas.drawText(text, x, y, mPaint);
+        canvas.restore();
     }
 
     /**
@@ -335,6 +417,11 @@ public class RadialTextsView extends View {
         }
 
         return mReappearAnimator;
+    }
+
+    public void setSelection(int hourDegrees, boolean hourInnerCircle) {
+        mSelectionHourDegrees = hourDegrees;
+        mSelectionInnerCircle = hourInnerCircle;
     }
 
     private class InvalidateUpdateListener implements ValueAnimator.AnimatorUpdateListener {
