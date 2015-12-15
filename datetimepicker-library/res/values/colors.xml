@@ -2,15 +2,16 @@
 <resources>
     <color name="white">#ffffffff</color>
     <color name="grey">#ddd</color>
-    <color name="circle_background">#fff2f2f2</color>
+    <color name="circle_background">#efefef</color>
     <color name="line_background">#ffcccccc</color>
     <color name="done_text_color_disabled">#ffcccccc</color>
     <color name="date_picker_text_normal">#000000</color>
     <color name="date_picker_text_selected">#ffffff</color>
-    <color name="date_picker_view_animator">#fff2f2f2</color>
+    <color name="picker_background">#ffffff</color>
 
-    <color name="ampm_text_color">#8c8c8c</color>
-    <color name="numbers_text_color">#8c8c8c</color>
+    <color name="ampm_text_color_normal">#000000</color>
+    <color name="ampm_text_color_selected">#ffffff</color>
+    <color name="numbers_text_color">#000000</color>
 
     <color name="transparent_white">#aaffffff</color>
     <color name="transparent_black">#7F000000</color>

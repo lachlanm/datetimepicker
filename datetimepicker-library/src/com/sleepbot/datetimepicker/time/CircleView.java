@@ -23,6 +23,7 @@ import android.util.Log;
 import android.view.View;
 
 import com.fourmob.datetimepicker.R;
+import com.fourmob.datetimepicker.Utils;
 
 /**
  * Draws a simple white circle on which the numbers will be drawn.
@@ -32,8 +33,8 @@ public class CircleView extends View {
 
     private final Paint mPaint = new Paint();
     private boolean mIs24HourMode;
-    private int mWhite;
-    private int mBlack;
+    private int mCircleColor;
+    private int mDotColor;
     private float mCircleRadiusMultiplier;
     private float mAmPmCircleRadiusMultiplier;
     private boolean mIsInitialized;
@@ -47,8 +48,8 @@ public class CircleView extends View {
         super(context);
 
         Resources res = context.getResources();
-        mWhite = res.getColor(R.color.white);
-        mBlack = res.getColor(R.color.numbers_text_color);
+        mCircleColor = res.getColor(R.color.circle_background);
+        mDotColor = Utils.getPrimaryColor(context);
         mPaint.setAntiAlias(true);
 
         mIsInitialized = false;
@@ -100,11 +101,11 @@ public class CircleView extends View {
         }
 
         // Draw the white circle.
-        mPaint.setColor(mWhite);
+        mPaint.setColor(mCircleColor);
         canvas.drawCircle(mXCenter, mYCenter, mCircleRadius, mPaint);
 
         // Draw a small black circle in the center.
-        mPaint.setColor(mBlack);
-        canvas.drawCircle(mXCenter, mYCenter, 2, mPaint);
+        mPaint.setColor(mDotColor);
+        canvas.drawCircle(mXCenter, mYCenter, 8, mPaint);
     }
 }
