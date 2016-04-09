@@ -36,8 +36,8 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
     private static final String KEY_PULSE_ANIMATE = "pulse_animate";
 
     // https://code.google.com/p/android/issues/detail?id=13050
-    private static final CalendarDay MINIMUM_POSSIBLE_DATE = new CalendarDay(1902, 1, 1);
-    private static final CalendarDay MAXIMUM_POSSIBLE_DATE = new CalendarDay(2037, 12, 31);
+    public static final CalendarDay MINIMUM_POSSIBLE_DATE = new CalendarDay(1902, 1, 1);
+    public static final CalendarDay MAXIMUM_POSSIBLE_DATE = new CalendarDay(2037, 12, 31);
 
     private static final int UNINITIALIZED = -1;
     private static final int MONTH_AND_DAY_VIEW = 0;
@@ -362,7 +362,16 @@ public class DatePickerDialog extends DialogFragment implements View.OnClickList
         setDateConstraints(new CalendarDay(minYear, mMinDate.month, mMinDate.day), new CalendarDay(maxYear, mMaxDate.month, mMaxDate.day));
     }
 
+    /**
+     * Set the minimum and maximum selectable date. Pass null to set it to the MINIMUM_POSSIBLE_DATE and 
+     * MAXIMUM_POSSIBLE_DATE, respectively.
+     */
     public void setDateConstraints(CalendarDay minDate, CalendarDay maxDate) {
+        if (minDate == null)
+            minDate = MINIMUM_POSSIBLE_DATE;
+        if (maxDate == null)
+            maxDate = MAXIMUM_POSSIBLE_DATE;
+
         if (minDate.isAfter(maxDate))
             throw new IllegalArgumentException("Max date must be larger than min date");
 
