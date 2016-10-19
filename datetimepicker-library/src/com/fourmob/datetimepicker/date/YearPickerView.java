@@ -73,7 +73,11 @@ public class YearPickerView extends LinearLayout implements AdapterView.OnItemCl
 		}
 
 		if (mListView.getLastVisiblePosition() == count - 1) {
-			return mListView.getChildAt(count - 1).getBottom() <= mListView.getHeight();
+			try {
+				return mListView.getChildAt(count - 1).getBottom() <= mListView.getHeight();
+			} catch (NullPointerException e) {
+				return true;
+			}
 		}
 		return false;
 	}
